@@ -304,7 +304,7 @@ main{padding-block:16px 40px}
         <button class="tool" type="button" data-place="п" title="Поставить пико: выберите и нажмите на кольцо или дугу"><svg viewBox="0 0 28 28"><path d="M3 21 H25" stroke="currentColor" stroke-width="1.7"/><path d="M10 21 V12 Q14 6 18 12 V21" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Пико</button>
         <button class="tool" type="button" data-place="сп" title="Поставить соединительное пико: выберите и нажмите на кольцо или дугу рядом с пико соседа"><svg viewBox="0 0 28 28"><path d="M3 21 H25" stroke="currentColor" stroke-width="1.7"/><path d="M14 21 V12" stroke="currentColor" stroke-width="1.5"/><circle cx="14" cy="10" r="3" fill="currentColor"/><path d="M16 8 L24 3" stroke="currentColor" stroke-width="1.1" stroke-dasharray="2.5 2"/></svg>Соед. пико</button>
         <button class="tool" type="button" data-place="б" title="Поставить бусину: выберите и нажмите на кольцо или дугу"><svg viewBox="0 0 28 28"><path d="M3 15 H25" stroke="currentColor" stroke-width="1.7"/><circle cx="14" cy="15" r="4.6" fill="currentColor"/></svg>Бусина</button>
-        <button class="tool" type="button" data-place="x" title="Убрать пико, бусину или соединение: выберите и нажмите на знак"><svg viewBox="0 0 28 28"><path d="M7 7 L21 21 M21 7 L7 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Убрать</button>
+        <button class="tool" type="button" data-place="x" title="Ластик: нажмите на кольцо, дугу, нить, подпись, число или на знак (пико, бусину, соединение), чтобы стереть"><svg viewBox="0 0 28 28"><path d="M7 7 L21 21 M21 7 L7 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Ластик</button>
         <div class="tool-sep"></div>
         <button class="tool" type="button" id="btnUndo" title="Отменить (Ctrl+Z)"><svg viewBox="0 0 28 28"><path d="M9 9 H17 a6 6 0 0 1 0 12 H10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 5 L8 9 L12 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Отменить</button>
         <button class="tool" type="button" id="btnRedo" title="Вернуть (Ctrl+Y)"><svg viewBox="0 0 28 28"><path d="M19 9 H11 a6 6 0 0 0 0 12 H18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 5 L20 9 L16 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Вернуть</button>
@@ -470,7 +470,7 @@ main{padding-block:16px 40px}
         </table></div>
         <p>Привычная запись через дефис тоже понимается: <code>5-5-5-5</code> — это то же, что <code>5 п 5 п 5 п 5</code>.</p>
         <p><b>Числа узлов на схеме</b> сами не пишутся — их ставите вы. Нажмите кнопку <b>«Число»</b> на панели слева, а потом на лист рядом с узлами: появится число, программа сразу подставит количество узлов этого участка. Его можно исправить в поле справа. Число можно перетащить мышкой, а лишнее — выделить и удалить. Если хотите, чтобы все числа писались сами, снимите выделение и в настройках справа включите <b>«Писать число узлов на схеме автоматически»</b>.</p>
-        <p><b>Можно не писать, а ставить мышкой.</b> На панели слева в группе <b>«На кольцо»</b> есть кнопки <b>Пико</b>, <b>Соед. пико</b>, <b>Бусина</b> и <b>Убрать</b>. Нажмите кнопку, а потом нажмите на кольцо или дугу в том месте, где нужен знак: он встанет между узлами, а запись узлов поправится сама. Так можно поставить несколько знаков подряд. Закончили — нажмите <b>«Готово»</b> над листом или клавишу Esc. Кнопка <b>«Убрать»</b> снимает пико, бусину или соединение, на которое вы нажали.</p>
+        <p><b>Можно не писать, а ставить мышкой.</b> На панели слева в группе <b>«На кольцо»</b> есть кнопки <b>Пико</b>, <b>Соед. пико</b>, <b>Бусина</b> и <b>Ластик</b>. Нажмите кнопку, а потом нажмите на кольцо или дугу в том месте, где нужен знак: он встанет между узлами, а запись узлов поправится сама. Так можно поставить несколько знаков подряд. Закончили — нажмите <b>«Готово»</b> над листом или клавишу Esc. Кнопка <b>«Ластик»</b> стирает то, на что вы нажали: пико, бусину или соединение — или целиком кольцо, дугу, нить, подпись, число. Если стёрли лишнее, нажмите «Отменить».</p>
         <p>Под полем видно, как программа поняла запись: каждое число и знак отдельной плашкой, и итог — сколько всего узлов, пико и бусин. Если какой-то знак <span class="bad-sample">подсвечен красным</span>, программа его не поняла — проверьте опечатку.</p>
         <p><b>Буква на схеме</b> (А, Б, В…) ставится сама, её можно поменять. По этой букве элемент называется в инструкции и в соединениях.</p>
         <p><b>Другие настройки кольца:</b></p>
@@ -1019,7 +1019,7 @@ function setPlaceTool(t){
   document.querySelectorAll('[data-place]').forEach(b => { const on = b.dataset.place===placeTool; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
   $('#canvasWrap').classList.toggle('placing', !!placeTool);
   $('#placeTip').hidden = !placeTool;
-  if(placeTool) $('#placeTipText').textContent = placeTool==='num' ? 'Нажмите на лист рядом с узлами и впишите число справа' : placeTool==='x' ?'Нажмите на пико, бусину или соединение, чтобы убрать' : `Нажмите на кольцо или дугу, куда поставить ${PLACE_NAMES[placeTool]}`;
+  if(placeTool) $('#placeTipText').textContent = placeTool==='num' ? 'Нажмите на лист рядом с узлами и впишите число справа' : placeTool==='x' ?'Ластик: нажмите на элемент или на пико, бусину, соединение — и оно сотрётся' : `Нажмите на кольцо или дугу, куда поставить ${PLACE_NAMES[placeTool]}`;
   snapMark = null; renderCanvas();
 }
 document.querySelectorAll('[data-place]').forEach(b => b.addEventListener('click', () => setPlaceTool(b.dataset.place)));
@@ -1073,7 +1073,7 @@ function nearestForeignPicot(el, x, y){
     for(const p of g.picots){ const d = Math.hypot(p.x-x, p.y-y); if(d<bd){ bd=d; best={ref:g.el.label, n:p.idx}; } } }
   return best;
 }
-function placeAt(x, y){
+function placeAt(x, y, hitId){
   if(placeTool==='num'){
     // подсказать число: ближайший отрезок узлов рядом с местом нажатия
     let best=null, bd=Math.max(upp()*60, 25);
@@ -1084,15 +1084,25 @@ function placeAt(x, y){
     return true;
   }
   if(placeTool==='x'){
-    const lim = upp()*14; let best=null;
+    const lim = upp()*10; let best=null;
     for(const g of geoms.list){ if(g.text) continue;
       g.marks.forEach((m, k) => { if(m.tk.t==='split') return; const pts=[[m.q.x,m.q.y]]; if(m.tip) pts.push(m.tip);
         for(const p of pts){ const d=Math.hypot(p[0]-x, p[1]-y); if(d<lim && (!best || d<best.d)) best={g, k, d}; } }); }
-    if(!best) return false;
+    if(!best){
+      // не знак — стираем весь элемент под курсором
+      let id = hitId;
+      if(!id){ let bd = upp()*12; for(const g of geoms.list){ const d = g.text ? ((x>=g.bbox[0]&&x<=g.bbox[2]&&y>=g.bbox[1]&&y<=g.bbox[3]) ? 0 : Infinity) : nearestOnPoly(g.pts, x, y).d; if(d<bd){ bd=d; id=g.el.id; } } }
+      const gone = id && byId(id); if(!gone) return false;
+      scheme.elements = scheme.elements.filter(e2 => e2.id!==id); if(selId===id) selId=null;
+      renderCanvas(); renderPanel(); commit();
+      const what = gone.type==='text' ? (gone.bold ? 'Число стёрто' : 'Подпись стёрта') : `${TYPES[gone.type].name}${gone.label?' '+gone.label:''} ${gone.type==='chain'||gone.type==='line' ? 'стёрта' : 'стёрто'}`;
+      toast(what + '. «Отменить» вернёт.');
+      return true;
+    }
     const el = best.g.el; const {toks} = parseNotation(el.notation);
     let k=-1; const kept = toks.filter(t => { if(t.t==='ds') return true; k++; return k!==best.k; });
     el.notation = mergeDs(kept).map(tokText).join(' ');
-    selId = el.id; renderCanvas(); renderPanel(); commit(); toast('Знак убран');
+    selId = el.id; renderCanvas(); renderPanel(); commit(); toast('Знак стёрт');
     return true;
   }
   const tg = placeTarget(x, y); if(!tg) return false;
@@ -1120,7 +1130,8 @@ svg.addEventListener('pointerdown', e => {
   const p = toWorld(e);
   const onText = (() => { const gg = e.target.closest('g.el'); const it = gg && byId(gg.dataset.id); return !!(it && it.type==='text'); })();
   if(placeTool && !e.target.closest('[data-handle]') && !(placeTool==='num' && onText)){
-    if(placeAt(p.x, p.y)){ e.preventDefault(); return; }
+    const hg = e.target.closest('g.el');
+    if(placeAt(p.x, p.y, hg ? hg.dataset.id : null)){ e.preventDefault(); return; }
   }
   const h = e.target.closest('[data-handle]'), gEl = e.target.closest('g.el');
   if(h && selId){ const el = byId(selId); drag = {kind:h.dataset.handle, el, p0:p, orig:{...el}, moved:false}; }
