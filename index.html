@@ -323,6 +323,7 @@ button, .tool, .btn, .chipbtn, a{touch-action:manipulation}
         <button class="tool" type="button" data-add="line" title="Нить"><svg viewBox="0 0 28 28"><path d="M14 2 V26" stroke="currentColor" stroke-width="1.2"/><circle cx="14" cy="11" r="2.6" fill="currentColor"/><circle cx="14" cy="18" r="2.6" fill="currentColor"/></svg>Нить</button>
         <button class="tool" type="button" data-add="text" title="Подпись"><svg viewBox="0 0 28 28"><text x="14" y="19" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor" font-family="Arial">Аа</text></svg>Подпись</button>
         <button class="tool" type="button" data-place="x" title="Ластик: нажмите на кольцо, дугу, нить, подпись, число или на знак (пико, бусину, соединение), чтобы стереть"><svg viewBox="0 0 28 28"><path d="M7 7 L21 21 M21 7 L7 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Ластик</button>
+        <button class="tool" type="button" data-place="sel" title="Выделить несколько: обведите рамкой часть схемы, потом тяните её целиком"><svg viewBox="0 0 28 28"><rect x="4" y="5" width="20" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 2.5"/><path d="M15 13 L22 20 M15 13 v6 M15 13 h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Выделить</button>
         <div class="tool-sep"></div>
         <button class="tool" type="button" id="btnUndo" title="Отменить (Ctrl+Z)"><svg viewBox="0 0 28 28"><path d="M9 9 H17 a6 6 0 0 1 0 12 H10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 5 L8 9 L12 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Отменить</button>
         <button class="tool" type="button" id="btnRedo" title="Вернуть (Ctrl+Y)"><svg viewBox="0 0 28 28"><path d="M19 9 H11 a6 6 0 0 0 0 12 H18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 5 L20 9 L16 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Вернуть</button>
@@ -519,6 +520,8 @@ button, .tool, .btn, .chipbtn, a{touch-action:manipulation}
           <li><b>Удалить пальцем</b> — нажмите на элемент (или на пико, бусину) и подержите: появится кнопка «Удалить».</li>
           <li><b>Размер</b> — кнопки <b>−</b> и <b>+</b> вверху панели справа или квадратная ручка на кончике кольца. Там же можно сделать крупнее или мельче пико и бусины этого элемента.</li>
           <li><b>На планшете</b> лист приближают двумя пальцами, как фотографию.</li>
+          <li><b>Передвинуть часть схемы целиком</b> (например, раппорт) — нажмите <b>«Выделить»</b> слева и обведите пальцем рамку вокруг нужных элементов. Потом тяните любой из них — поедет вся часть. Справа есть <b>«Копия»</b> — повторить эту часть рядом.</li>
+          <li><b>Пико или бусину передвинуть</b> — сначала нажмите на кольцо, чтобы его выделить, потом тяните пико вдоль кольца.</li>
           <li><b>Готово</b> — снимает выделение и возвращает настройки всей схемы.</li>
         </ul>
         <p class="tip">Клавиши на компьютере: Ctrl+Z — отменить, Ctrl+Y — вернуть, Delete — удалить, Ctrl+D — копия, стрелки — подвинуть на 1 (с Shift — на 10).</p>
@@ -998,7 +1001,7 @@ function renderCanvas(){
   }
   s += schemeMarkup(scheme, geoms, {exp:false});
   for(const g of geoms.list){
-    const el = g.el, isSel = el.id===selId;
+    const el = g.el, isSel = el.id===selId || selGroup.includes(el.id);
     let hit, halo='';
     if(g.text){ const [a,b,c,d]=g.bbox; hit = `<rect x="${r1(a)}" y="${r1(b)}" width="${r1(c-a)}" height="${r1(d-b)}" fill="transparent" pointer-events="all"/>`; if(isSel) halo = `<rect class="halo" x="${r1(a)}" y="${r1(b)}" width="${r1(c-a)}" height="${r1(d-b)}" stroke-width="${r1(u*2)}" rx="3"/>`; }
     else if(g.closed){ hit = `<path d="${g.d}" fill="transparent" stroke="transparent" stroke-width="${r1(u*14)}" pointer-events="all"/>`; if(isSel) halo = `<path class="halo" d="${g.d}" stroke-width="${r1(u*9)}"/>`; }
@@ -1021,6 +1024,7 @@ function renderCanvas(){
       s += `<circle class="hdl" data-handle="p2" cx="${r1(sg.el.x2)}" cy="${r1(sg.el.y2)}" r="${hr}" vector-effect="non-scaling-stroke"><title>Конец</title></circle>`;
     }
   }
+  if(selRect){ const [a,b,c,d] = selRect; s += `<rect x="${r1(Math.min(a,c))}" y="${r1(Math.min(b,d))}" width="${r1(Math.abs(c-a))}" height="${r1(Math.abs(d-b))}" fill="rgba(42,92,105,.08)" stroke="var(--sel)" stroke-width="${r1(u*1.5)}" stroke-dasharray="${r1(u*5)} ${r1(u*4)}"/>`; }
   if(snapMark) s += `<circle class="snap" cx="${r1(snapMark[0])}" cy="${r1(snapMark[1])}" r="${r1(u*10)}" vector-effect="non-scaling-stroke"/>`;
   world.innerHTML = s;
   $('#emptyHint').hidden = scheme.elements.length>0;
@@ -1043,13 +1047,14 @@ function snap(x, y, exceptId){
 
 /* ---------- Знаки мышкой: пико, соединительное пико, бусина, убрать ---------- */
 let placeTool = null, placeRaf = 0;
+let selGroup = [], selRect = null;
 const PLACE_NAMES = {'п':'пико', 'сп':'соединительное пико', 'б':'бусину'};
 function setPlaceTool(t){
   placeTool = (t && t!==placeTool) ? t : null;
   document.querySelectorAll('[data-place]').forEach(b => { const on = b.dataset.place===placeTool; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
   $('#canvasWrap').classList.toggle('placing', !!placeTool);
   $('#placeTip').hidden = !placeTool;
-  if(placeTool) $('#placeTipText').textContent = placeTool==='num' ? 'Нажмите на лист рядом с узлами и впишите число справа' : placeTool==='x' ?'Ластик: нажмите на элемент или на пико, бусину, соединение — и оно сотрётся' : (placeTool==='б' ? 'Нажмите на кольцо или дугу — бусина встанет на нить; на пустое место — отдельная бусина' : `Нажмите на кольцо или дугу, куда поставить ${PLACE_NAMES[placeTool]}`);
+  if(placeTool) $('#placeTipText').textContent = placeTool==='sel' ? 'Обведите пальцем рамку вокруг нужной части схемы' : placeTool==='num' ? 'Нажмите на лист рядом с узлами и впишите число справа' : placeTool==='x' ?'Ластик: нажмите на элемент или на пико, бусину, соединение — и оно сотрётся' : (placeTool==='б' ? 'Нажмите на кольцо или дугу — бусина встанет на нить; на пустое место — отдельная бусина' : `Нажмите на кольцо или дугу, куда поставить ${PLACE_NAMES[placeTool]}`);
   snapMark = null; renderCanvas();
 }
 document.querySelectorAll('[data-place]').forEach(b => b.addEventListener('click', () => setPlaceTool(b.dataset.place)));
@@ -1110,7 +1115,7 @@ function placeAt(x, y, hitId){
     for(const g of geoms.list){ for(const r of g.runs){ const d=Math.hypot(r.x-x, r.y-y); if(d<bd){ bd=d; best=r; } } }
     const el = {id:uid('e'), type:'text', label:'', text: best ? String(best.n) : '5', size:10, bold:true, x:r1(best ? best.x : x), y:r1(best ? best.y : y), note:''};
     scheme.elements.push(el); selId = el.id; renderCanvas(); renderPanel(); commit();
-    const inp = $('#f-text'); if(inp){ inp.focus(); inp.select(); }
+    const inp = $('#f-text'); if(inp && matchMedia('(pointer:fine)').matches){ inp.focus(); inp.select(); }
     return true;
   }
   if(placeTool==='x'){
@@ -1195,7 +1200,9 @@ function startLongPress(e, info){
   lpTimer = setTimeout(() => {
     if(!drag || drag.moved || pinch) return;
     drag = null; snapMark = null;
-    if(info.mark){
+    if(info.group){
+      showLp(ev, `выделенное (${selGroup.length})`, () => { const set = new Set(selGroup); scheme.elements = scheme.elements.filter(x => !set.has(x.id)); selGroup = []; renderCanvas(); renderPanel(); commit(); toast('Удалено. «Отменить» вернёт.'); });
+    } else if(info.mark){
       const {g, k, tk} = info.mark;
       showLp(ev, MARK_NAMES[tk.t] || 'знак', () => { removeTok(g.el, k); selId = g.el.id; renderCanvas(); renderPanel(); commit(); toast('Удалено. «Отменить» вернёт.'); });
     } else {
@@ -1220,6 +1227,19 @@ svg.addEventListener('pointerdown', e => {
     e.preventDefault(); return;
   }
   const p = toWorld(e);
+  if(placeTool==='sel'){
+    selGroup = []; selId = null; selRect = [p.x, p.y, p.x, p.y];
+    drag = {kind:'rect', p0:p, moved:false}; try{ svg.setPointerCapture(e.pointerId); }catch(_){}
+    renderCanvas(); e.preventDefault(); return;
+  }
+  { const gg = e.target.closest('g.el');
+    if(gg && selGroup.length>1 && selGroup.includes(gg.dataset.id)){
+      const origs = {}; selGroup.forEach(id => { const x = byId(id); if(x) origs[id] = {...x}; });
+      drag = {kind:'group', p0:p, origs, moved:false}; startLongPress(e, {group:true});
+      try{ svg.setPointerCapture(e.pointerId); }catch(_){} e.preventDefault(); return;
+    }
+    if(selGroup.length){ selGroup = []; renderCanvas(); renderPanel(); }
+  }
   const onText = (() => { const gg = e.target.closest('g.el'); const it = gg && byId(gg.dataset.id); return !!(it && it.type==='text'); })();
   if(placeTool && !e.target.closest('[data-handle]') && !(placeTool==='num' && onText)){
     const hg = e.target.closest('g.el');
@@ -1228,7 +1248,7 @@ svg.addEventListener('pointerdown', e => {
   const h = e.target.closest('[data-handle]'), gEl = e.target.closest('g.el');
   const mk = (!h && !placeTool) ? hitMark(p.x, p.y, upp()*(e.pointerType==='touch' ? 13 : 8)) : null;
   if(h && selId){ const el = byId(selId); drag = {kind:h.dataset.handle, el, p0:p, orig:{...el}, moved:false}; }
-  else if(mk){
+  else if(mk && mk.g.el.id===selId){
     // знак можно тянуть вдоль кольца или дуги
     const el = mk.g.el; if(el.id!==selId){ selId=el.id; renderCanvas(); renderPanel(); }
     drag = {kind:'mark', el, k:mk.k, tk:mk.tk, p0:p, moved:false};
@@ -1257,6 +1277,15 @@ svg.addEventListener('pointermove', e => {
     return;
   }
   if(!drag) return;
+  if(drag.kind==='rect'){ const q = toWorld(e); selRect[2]=q.x; selRect[3]=q.y; drag.moved = true; renderCanvas(); return; }
+  if(drag.kind==='group'){
+    const q = toWorld(e), gx = q.x-drag.p0.x, gy = q.y-drag.p0.y;
+    if(!drag.moved && Math.hypot(gx,gy) < upp()*(e.pointerType==='touch' ? 8 : 3)) return;
+    drag.moved = true; clearTimeout(lpTimer);
+    for(const id in drag.origs){ const el = byId(id), o = drag.origs[id]; if(!el) continue;
+      if(el.type==='chain'||el.type==='line'){ el.x1=r1(o.x1+gx); el.y1=r1(o.y1+gy); el.x2=r1(o.x2+gx); el.y2=r1(o.y2+gy); } else { el.x=r1(o.x+gx); el.y=r1(o.y+gy); } }
+    renderCanvas(); return;
+  }
   if(drag.kind==='pan'){ if(Math.hypot(e.clientX-drag.c0[0], e.clientY-drag.c0[1])>4) drag.moved = true; view.x = drag.v0.x - (e.clientX-drag.c0[0])*drag.u; view.y = drag.v0.y - (e.clientY-drag.c0[1])*drag.u; applyView(); return; }
   const p = toWorld(e), dx = p.x-drag.p0.x, dy = p.y-drag.p0.y;
   if(!drag.moved && Math.hypot(dx,dy) < upp()*(e.pointerType==='touch' ? 8 : 3)) return;
@@ -1294,6 +1323,16 @@ function endDrag(e){
   clearTimeout(lpTimer);
   if(e && e.pointerId!==undefined) touches.delete(e.pointerId);
   if(pinch){ if(touches.size<2){ pinch = null; drag = null; } return; }
+  if(drag && drag.kind==='rect'){
+    const [a,b,c,d] = selRect, x0=Math.min(a,c), x1=Math.max(a,c), y0=Math.min(b,d), y1=Math.max(b,d);
+    selRect = null; drag = null;
+    const ids = geoms.list.filter(g => { const [p,q,r,t] = g.bbox; const cx=(p+r)/2, cy=(q+t)/2; return cx>=x0 && cx<=x1 && cy>=y0 && cy<=y1; }).map(g => g.el.id);
+    setPlaceTool(null);
+    if(ids.length===1){ selId = ids[0]; selGroup = []; }
+    else { selGroup = ids; selId = null; if(!ids.length) toast('В рамку ничего не попало — обведите элементы целиком или по центру.'); }
+    renderCanvas(); renderPanel(); return;
+  }
+  if(drag && drag.kind==='group'){ const mv = drag.moved; drag = null; if(mv){ renderCanvas(); commit(); } return; }
   if(drag && drag.moved && drag.kind==='mark' && drag.c!==undefined){
     // перенести знак на новое место
     const {toks} = parseNotation(drag.el.notation); let i=-1, tok=null;
@@ -1350,7 +1389,7 @@ function addElement(type){
     el = {id:uid('e'), type:'text', label:'', text:'Подпись', size:14, x:r1(cx), y:r1(cy), note:''};
   }
   scheme.elements.push(el); selId = el.id; renderCanvas(); renderPanel(); commit();
-  if(type!=='text'){ const ta = $('#f-notation'); if(ta && window.matchMedia('(min-width: 761px)').matches){ ta.focus(); ta.select(); } }
+  if(type!=='text'){ const ta = $('#f-notation'); if(ta && window.matchMedia('(min-width: 761px)').matches && matchMedia('(pointer:fine)').matches){ ta.focus(); ta.select(); } }
 }
 document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => addElement(b.dataset.add)));
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo;
@@ -1366,6 +1405,12 @@ function duplicateSel(){
 const panel = $('#panel');
 function renderPanel(){
   const el = selId && byId(selId);
+  if(!el && selGroup.length>1){
+    panel.innerHTML = `<div><div class="kind">Выделено</div><h3>${selGroup.length} ${plural(selGroup.length,'элемент','элемента','элементов')}</h3></div>
+      <p class="hint">Тяните любой выделенный элемент — вся часть схемы поедет вместе. Копия появится рядом, её тоже можно тянуть целиком.</p>
+      <div class="row"><button type="button" class="btn" data-act="gdup">Копия</button><button type="button" class="btn danger" data-act="gdel">Удалить</button><button type="button" class="btn" data-act="gdone">Готово</button></div>`;
+    return;
+  }
   if(!el){ panel.innerHTML = settingsPanelHTML(); syncSettingsValues(); return; }
   const T = TYPES[el.type];
   let h = `<div><div class="kind">${el.bold ? 'Число' : T.name}</div><h3>${el.type==='bead' ? 'Бусина на схеме' : el.type==='text' ? (el.bold ? 'Число узлов на схеме' : 'Подпись на схеме') : T.name+' '+esc(el.label||'')}</h3></div>`;
@@ -1463,6 +1508,21 @@ panel.addEventListener('click', e => {
     renderCanvas(); updateNotPreview(el); commit(); return;
   }
   const act = b.dataset.act;
+  if(act==='gdone'){ selGroup = []; renderCanvas(); renderPanel(); return; }
+  if(act==='gdel'){ if(!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent='Точно удалить?'; setTimeout(()=>{ if(b.isConnected){ b.classList.remove('armed'); b.textContent='Удалить'; } }, 3000); return; }
+    const set = new Set(selGroup); scheme.elements = scheme.elements.filter(x => !set.has(x.id)); selGroup = []; renderCanvas(); renderPanel(); commit(); toast('Удалено. «Отменить» вернёт.'); return; }
+  if(act==='gdup'){
+    const map = {}, copies = [];
+    for(const id of selGroup){ const el0 = byId(id); if(!el0) continue; const c = JSON.parse(JSON.stringify(el0)); c.id = uid('e'); map[id] = c;
+      if(c.type!=='text' && c.type!=='bead'){ const old = c.label; c.label = ''; c._old = old; }
+      if(c.type==='chain'||c.type==='line'){ c.x1+=30; c.x2+=30; c.y1+=30; c.y2+=30; } else { c.x+=30; c.y+=30; }
+      copies.push(c); }
+    // новые буквы и соединения внутри копии
+    const rename = {};
+    for(const c of copies){ scheme.elements.push(c); if(c._old!==undefined){ c.label = nextLabel(); rename[c._old] = c.label; delete c._old; } }
+    for(const c of copies){ if(!c.notation) continue; const {toks} = parseNotation(c.notation); c.notation = toks.map(t => (t.t==='join' && t.ref && rename[t.ref]) ? {...t, ref:rename[t.ref]} : t).map(tokText).join(' '); }
+    selGroup = copies.map(c => c.id); renderCanvas(); renderPanel(); commit(); toast('Копия готова — тяните её на место'); return;
+  }
   if(act==='insJoin' && el){
     const ref = $('#joinEl').value; if(!ref){ toast('Сначала добавьте на схему элемент, с которым нужно соединить.'); return; }
     const n = Math.max(1, parseInt($('#joinN').value)||1);
