@@ -174,6 +174,10 @@ main{padding-block:16px 40px}
 .sheet p{margin:0;font-size:14px}
 .sheet .legend .lg{font-size:12px}
 .sh-tot{background:#f1efe9;border-radius:6px;padding:10px 14px;font-size:13px}
+.sh-brand{display:flex;align-items:center;gap:12px;padding-bottom:10px;border-bottom:2px solid #2a5c69;margin-bottom:6px}
+.sh-brand .nm{font-family:var(--f-display);font-weight:600;font-size:34px;color:#23212b;line-height:1}
+.sh-brand .rt{margin-left:auto;text-align:right;font-size:12px;color:#5b5a63;line-height:1.5}
+.sh-brand a{color:#2a5c69;font-weight:600}
 .sh-foot{margin-top:22px;padding-top:12px;border-top:1px solid #d9d6cf;font-size:12.5px;color:#5b5a63;line-height:1.6}
 .sh-foot b{color:#23212b}
 .sh-foot a{color:#2a5c69}
@@ -1539,7 +1543,7 @@ async function renderSheet(){
   let pic = '';
   try{ const {canvas} = await schemePngBlob(sc, 1400); sheetPng = canvas.toDataURL('image/png'); pic = `<img src="${sheetPng}" alt="Схема ${esc(sc.name)}">`; }catch(e){ pic = exportSVG(sc, 700).svg; }
   const meta = metaList(sc);
-  let h = `<div><h1>${esc(sc.name)}</h1></div>`;
+  let h = `<div class="sh-brand"><svg width="44" height="44" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 20 C10 9, 30 9, 36 20 C30 31, 10 31, 4 20 Z" fill="none" stroke="#23212b" stroke-width="2"/><path d="M14 20 h12" stroke="#23212b" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="20" r="2.4" fill="#2a5c69"/></svg><span class="nm">${esc(BRAND.name)}</span><span class="rt">${esc(BRAND.tagline)}<br><a href="${BRAND.siteUrl}" target="_blank" rel="noopener">${esc(BRAND.site)}</a></span></div><div><h1>${esc(sc.name)}</h1></div>`;
   if(meta.length) h += `<div class="sh-meta">${meta.map(([k,v]) => `<div><span>${esc(k)}:</span> ${esc(v)}</div>`).join('')}</div>`;
   h += `<div class="sh-pics${d.photo?' two':''}"><div class="sh-scheme">${sc.elements.length ? pic : '<p style="color:#6b6a72">Схема пока пустая.</p>'}</div>${d.photo?`<img class="shot" src="${d.photo}" alt="Фото готового изделия">`:''}</div>`;
   if(d.text) h += `<p>${esc(d.text)}</p>`;
@@ -1571,6 +1575,7 @@ async function sheetCanvas(opt={}){
   const legend = ['К — кольцо','РК — разделённое кольцо','Д — дуга','п — пико','дп — длинное пико','пб — пико с бусиной','б — бусина','сп, с А2 — соединительное пико','число — двойные узлы','ПР — перевернуть работу'];
   function draw(cx, dry){
     let y = M;
+    if(withFooter){ const hh = brandHeader(cx, M, 40, CW, dry); y = 40 + hh.h + 10; }
     const text = (t, font, color, x, yy) => { if(!dry){ cx.font=font; cx.fillStyle=color; cx.fillText(t, x, yy); } };
     const para = (t, size, color, weight='400', lh=1.45, indent=0) => { cx.font=`${weight} ${size}px ${BODY}`; const lines = wrapLines(cx, t, CW-indent); for(const l of lines){ y += size*lh; text(l, `${weight} ${size}px ${BODY}`, color, M+indent, y); if(dry) brk.push(y + size*0.45); } };
     cx.font = `600 58px ${DISP}`; for(const l of wrapLines(cx, sc.name, CW)){ y+=62; text(l, `600 58px ${DISP}`, '#23212b', M, y); }
@@ -1616,10 +1621,34 @@ async function sheetCanvas(opt={}){
 
 /* ---------- Подпись платформы на листе и в PDF ---------- */
 const BRAND = {
+  name: 'Челночок', tagline: 'конструктор схем фриволите',
   line: 'Схема создана в «Челночке» — конструкторе схем фриволите',
   site: 'oleshiy1988.github.io/chelnochok', siteUrl: 'https://oleshiy1988.github.io/chelnochok/',
   chats: [['ВКонтакте', CHAT_LINKS.vk], ['Max', CHAT_LINKS.max]]
 };
+// Шапка платформы: знак и крупное название на каждом листе
+function brandHeader(cx, x, y, w, dry){
+  const DISP='"Cormorant Garamond", Georgia, serif', BODY='Manrope, Arial, sans-serif', links=[];
+  const H = 70, k = 1.6;
+  if(!dry){
+    cx.save(); cx.translate(x, y + H/2 - 20*k); cx.scale(k, k);
+    cx.strokeStyle='#23212b'; cx.lineWidth=2; cx.lineCap='round';
+    cx.stroke(new Path2D('M4 20 C10 9, 30 9, 36 20 C30 31, 10 31, 4 20 Z')); cx.stroke(new Path2D('M14 20 h12'));
+    cx.fillStyle='#2a5c69'; cx.beginPath(); cx.arc(20, 20, 2.6, 0, Math.PI*2); cx.fill(); cx.restore();
+    cx.fillStyle='#23212b'; cx.font=`600 54px ${DISP}`; cx.textBaseline='alphabetic'; cx.fillText(BRAND.name, x + 40*k + 14, y + H/2 + 17);
+  }
+  cx.font=`600 17px ${BODY}`; const sw = cx.measureText(BRAND.site).width;
+  cx.font=`15px ${BODY}`; const tw = cx.measureText(BRAND.tagline).width;
+  if(!dry){
+    cx.textAlign='right';
+    cx.fillStyle='#5b5a63'; cx.font=`15px ${BODY}`; cx.fillText(BRAND.tagline, x+w, y + H/2 - 4);
+    cx.fillStyle='#2a5c69'; cx.font=`600 17px ${BODY}`; cx.fillText(BRAND.site, x+w, y + H/2 + 20);
+    cx.textAlign='left';
+    cx.fillStyle='#2a5c69'; cx.fillRect(x, y + H + 8, w, 2.5);
+  }
+  links.push({x:x+w-sw, y:y+H/2+3, w:sw, h:24, url:BRAND.siteUrl});
+  return {h: H + 14, links};
+}
 // Рисует подпись платформы; возвращает высоту и области ссылок (для PDF)
 function brandFooter(cx, x, y, w, dry){
   const BODY='Manrope, Arial, sans-serif', links=[];
@@ -1641,10 +1670,10 @@ function brandFooter(cx, x, y, w, dry){
 /* ---------- PDF без библиотек: страницы-картинки A4 ---------- */
 async function sheetPdfBlob(){
   const src = await sheetCanvas({footer:false});
-  const PW=1240, PH=1754, FOOT=120, TOP=70, end = src._end, breaks = src._breaks;
-  const slices=[]; let y0=0;
+  const PW=1240, PH=1754, FOOT=120, HEAD=130, end = src._end, breaks = src._breaks;
+  const slices=[]; let y0=40;
   while(y0 < end - 4){
-    const top = slices.length ? TOP : 0, avail = PH - FOOT - top;
+    const top = HEAD, avail = PH - FOOT - top;
     let cut = Math.min(end, y0 + avail);
     if(cut < end){ const ok = breaks.filter(b => b > y0 + 40 && b <= y0 + avail); if(ok.length) cut = Math.max(...ok); }
     slices.push({y0, y1:cut, top}); y0 = cut;
@@ -1653,9 +1682,10 @@ async function sheetPdfBlob(){
     const cv = document.createElement('canvas'); cv.width=PW; cv.height=PH; const cx = cv.getContext('2d');
     cx.fillStyle='#ffffff'; cx.fillRect(0,0,PW,PH);
     cx.drawImage(src, 0, sl.y0, PW, sl.y1-sl.y0, 0, sl.top, PW, sl.y1-sl.y0);
+    const hd = brandHeader(cx, 90, 34, PW-180, false);
     const f = brandFooter(cx, 90, PH-FOOT, PW-180, false);
     cx.font = '15px Manrope, Arial, sans-serif'; cx.fillStyle='#8a8992'; cx.textAlign='right'; cx.fillText(`${i+1} / ${slices.length}`, PW-90, PH-FOOT+34); cx.textAlign='left';
-    return {cv, links:f.links};
+    return {cv, links:[...hd.links, ...f.links]};
   });
   return makePdf(pages, scheme.name);
 }
