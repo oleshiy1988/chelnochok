@@ -174,6 +174,9 @@ main{padding-block:16px 40px}
 .sheet p{margin:0;font-size:14px}
 .sheet .legend .lg{font-size:12px}
 .sh-tot{background:#f1efe9;border-radius:6px;padding:10px 14px;font-size:13px}
+.sh-foot{margin-top:22px;padding-top:12px;border-top:1px solid #d9d6cf;font-size:12.5px;color:#5b5a63;line-height:1.6}
+.sh-foot b{color:#23212b}
+.sh-foot a{color:#2a5c69}
 .dl-note{font-size:13px;color:var(--muted);margin:0}
 .dl-alt{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-bottom:16px;max-width:860px}
 #sheetImgBox img{width:100%;max-width:860px;border-radius:4px;box-shadow:0 1px 2px rgba(20,20,30,.08),0 8px 30px rgba(20,20,30,.08);-webkit-touch-callout:default}
@@ -392,7 +395,8 @@ main{padding-block:16px 40px}
   <!-- ЛИСТ -->
   <section class="tab" id="tab-sheet" role="tabpanel" aria-labelledby="tb-sheet">
     <div class="sheet-actions">
-      <button class="btn primary" type="button" id="dlSheet">Скачать лист картинкой</button>
+      <button class="btn primary" type="button" id="dlPdf">Скачать PDF</button>
+      <button class="btn" type="button" id="dlSheet">Скачать лист картинкой</button>
       <button class="btn" type="button" id="dlScheme">Скачать только схему</button>
       <button class="btn" type="button" id="dlTxt">Скачать инструкцию (.txt)</button>
       <button class="btn" type="button" id="copyTxt">Скопировать инструкцию</button>
@@ -544,6 +548,7 @@ main{padding-block:16px 40px}
         <h2>Готовый лист и скачивание</h2>
         <p>Во вкладке <b>«Готовый лист»</b> всё собрано на одной странице: название, данные, схема, фото, условные обозначения, ход работы и итог. Кнопки сверху:</p>
         <ul>
+          <li><b>Скачать PDF</b> — готовый лист схемы для печати и отправки: страницы А4, внизу каждой — подпись «Челночка» с адресом сайта и чатом поддержки.</li>
           <li><b>Скачать лист картинкой</b> — одна картинка PNG со всем листом. Удобно отправить в мессенджер, распечатать или выложить.</li>
           <li><b>Скачать только схему</b> — картинка схемы без текста, крупная и чёткая.</li>
           <li><b>Скачать инструкцию (.txt)</b> и <b>Скопировать инструкцию</b> — текст, чтобы вставить в пост или сообщение.</li>
@@ -834,6 +839,11 @@ function exportSVG(sc, pxW=1400){
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${pxW}" height="${H}" viewBox="${r1(x0)} ${r1(y0)} ${r1(w)} ${r1(h)}"><rect x="${r1(x0)}" y="${r1(y0)}" width="${r1(w)}" height="${r1(h)}" fill="#ffffff"/>${body}</svg>`;
   return {svg, w:pxW, h:H, empty: sc.elements.length===0};
 }
+
+const CHAT_LINKS = {
+  vk:  'https://vk.me/join/7FPcRWrxBaQ811QaREm8LLqYC6eg7tTh2nI=',
+  max: 'https://max.ru/join/muohF5mBUf9xrOgh1mDehkFeDuhu1ood3AIMv2v3AYU'
+};
 
 /* ---------- Состояние ---------- */
 const ST_DEFAULT = {showCounts:false, repeat:1, mirror:false, stitch:5, grid:true, labelsFirstOnly:true, shuttleCount:2, colors:['#26232e','#2f5fa8'], beadColor:'#c9962b'};
@@ -1540,6 +1550,7 @@ async function renderSheet(){
   if(ins.repeat) h += `<p><b>Повтор.</b> ${esc(ins.repeat)}</p>`;
   if(d.finish) h += `<p><b>В конце.</b> ${esc(d.finish)}</p>`;
   if(ins.steps.length) h += `<div class="sh-tot">${esc(totalsText(sc, ins))}</div>`;
+  h += `<div class="sh-foot"><b>${esc(BRAND.line)}</b><br>Сайт: <a href="${BRAND.siteUrl}" target="_blank" rel="noopener">${esc(BRAND.site)}</a> · Вопросы и помощь — чат: ${BRAND.chats.map(([t,u])=>`<a href="${u}" target="_blank" rel="noopener">${esc(t)}</a>`).join(' и ')}</div>`;
   $('#sheet').innerHTML = h;
   const ib = $('#sheetImgBox'); if(ib) ib.innerHTML = '';
 }
@@ -1549,7 +1560,8 @@ function wrapLines(cx, text, maxW){
   for(const w of words){ const t = cur ? cur+' '+w : w; if(cx.measureText(t).width > maxW && cur){ lines.push(cur); cur=w; } else cur=t; }
   if(cur) lines.push(cur); return lines;
 }
-async function sheetCanvas(){
+async function sheetCanvas(opt={}){
+  const withFooter = opt.footer!==false; const brk = [];
   try{ await document.fonts.ready; }catch(_){}
   const sc = scheme, ins = genInstructions(sc), d = sc.desc;
   const W=1240, M=90, CW=W-2*M;
@@ -1560,7 +1572,7 @@ async function sheetCanvas(){
   function draw(cx, dry){
     let y = M;
     const text = (t, font, color, x, yy) => { if(!dry){ cx.font=font; cx.fillStyle=color; cx.fillText(t, x, yy); } };
-    const para = (t, size, color, weight='400', lh=1.45, indent=0) => { cx.font=`${weight} ${size}px ${BODY}`; const lines = wrapLines(cx, t, CW-indent); for(const l of lines){ y += size*lh; text(l, `${weight} ${size}px ${BODY}`, color, M+indent, y); } };
+    const para = (t, size, color, weight='400', lh=1.45, indent=0) => { cx.font=`${weight} ${size}px ${BODY}`; const lines = wrapLines(cx, t, CW-indent); for(const l of lines){ y += size*lh; text(l, `${weight} ${size}px ${BODY}`, color, M+indent, y); if(dry) brk.push(y + size*0.45); } };
     cx.font = `600 58px ${DISP}`; for(const l of wrapLines(cx, sc.name, CW)){ y+=62; text(l, `600 58px ${DISP}`, '#23212b', M, y); }
     y += 14;
     const meta = metaList(sc);
@@ -1572,10 +1584,10 @@ async function sheetCanvas(){
       if(sch){ sh = sw*sch.height/sch.width; if(sh>1100){ sh=1100; sw = sh*sch.width/sch.height; } }
       if(photo){ ph = pw*photo.naturalHeight/photo.naturalWidth; if(ph>900){ ph=900; } }
       if(!dry){ if(sch){ cx.drawImage(sch, M, y, sw, sh); } if(photo){ const x = sch ? W-M-pw : M; const pw2 = ph*photo.naturalWidth/photo.naturalHeight; cx.drawImage(photo, x + (pw-Math.min(pw,pw2))/2, y, Math.min(pw,pw2), ph); } }
-      y += Math.max(sh, ph) + 20;
+      y += Math.max(sh, ph) + 20; if(dry) brk.push(y-10);
     }
     if(d.text){ para(d.text, 22, '#23212b'); y += 14; }
-    const h2 = t => { y += 30; text(t, `600 34px ${DISP}`, '#23212b', M, y+30); y += 42; if(!dry){ cx.fillStyle='#d9d6cf'; cx.fillRect(M, y, CW, 1.5); } y += 8; };
+    const h2 = t => { if(dry) brk.push(y+4); y += 30; text(t, `600 34px ${DISP}`, '#23212b', M, y+30); y += 42; if(!dry){ cx.fillStyle='#d9d6cf'; cx.fillRect(M, y, CW, 1.5); } y += 8; };
     h2('Условные обозначения');
     para(legend.join('   ·   '), 19, '#3c3b44'); y += 6;
     h2('Ход работы');
@@ -1584,20 +1596,94 @@ async function sheetCanvas(){
       y += 6; const num = `${s.n}.`;
       text(num, `700 21px ${BODY}`, '#2a5c69', M, y+21*1.45);
       para(`${s.title}. ${s.text}`, 21, '#23212b', '400', 1.45, 40);
-      cx.font = `17px ${MONO}`; for(const l of wrapLines(cx, s.short, CW-40)){ y += 25; text(l, `17px ${MONO}`, '#6b6a72', M+40, y); }
+      cx.font = `17px ${MONO}`; for(const l of wrapLines(cx, s.short, CW-40)){ y += 25; text(l, `17px ${MONO}`, '#6b6a72', M+40, y); if(dry) brk.push(y+8); }
       if(s.note){ para(s.note, 19, '#3c3b44', 'italic 400', 1.45, 40); }
     }
     if(ins.repeat){ y += 10; para('Повтор. '+ins.repeat, 21, '#23212b'); }
     if(d.finish){ y += 10; para('В конце. '+d.finish, 21, '#23212b'); }
-    if(ins.steps.length){ y += 24; const top=y; cx.font=`19px ${BODY}`; const lines = wrapLines(cx, totalsText(sc, ins), CW-40); if(!dry){ cx.fillStyle='#f1efe9'; cx.fillRect(M, top, CW, lines.length*28+28); } y += 14; for(const l of lines){ y+=28; text(l, `19px ${BODY}`, '#23212b', M+20, y); } y += 18; }
+    if(ins.steps.length){ y += 24; const top=y; cx.font=`19px ${BODY}`; const lines = wrapLines(cx, totalsText(sc, ins), CW-40); if(!dry){ cx.fillStyle='#f1efe9'; cx.fillRect(M, top, CW, lines.length*28+28); } y += 14; for(const l of lines){ y+=28; text(l, `19px ${BODY}`, '#23212b', M+20, y); } y += 18; if(dry) brk.push(y+2); }
+    if(withFooter){ y += 40; const fh = brandFooter(cx, M, y, CW, dry); y += fh.h; }
     return y + M;
   }
   const meas = document.createElement('canvas').getContext('2d');
   const H = Math.ceil(draw(meas, true));
   const cv = document.createElement('canvas'); cv.width=W; cv.height=H; const cx=cv.getContext('2d');
-  cx.fillStyle='#fdfdfb'; cx.fillRect(0,0,W,H); cx.textBaseline='alphabetic';
+  cx.fillStyle = withFooter ? '#fdfdfb' : '#ffffff'; cx.fillRect(0,0,W,H); cx.textBaseline='alphabetic';
   draw(cx, false);
+  cv._breaks = brk.filter(b => b < H - M); cv._end = H - M;
   return cv;
+}
+
+/* ---------- Подпись платформы на листе и в PDF ---------- */
+const BRAND = {
+  line: 'Схема создана в «Челночке» — конструкторе схем фриволите',
+  site: 'oleshiy1988.github.io/chelnochok', siteUrl: 'https://oleshiy1988.github.io/chelnochok/',
+  chats: [['ВКонтакте', CHAT_LINKS.vk], ['Max', CHAT_LINKS.max]]
+};
+// Рисует подпись платформы; возвращает высоту и области ссылок (для PDF)
+function brandFooter(cx, x, y, w, dry){
+  const BODY='Manrope, Arial, sans-serif', links=[];
+  if(!dry){ cx.fillStyle='#d9d6cf'; cx.fillRect(x, y, w, 1.5); }
+  let yy = y + 34;
+  cx.font = `600 18px ${BODY}`; if(!dry){ cx.fillStyle='#23212b'; cx.fillText(BRAND.line, x, yy); }
+  yy += 30; let xx = x;
+  const piece = (t, url) => {
+    cx.font = url ? `600 17px ${BODY}` : `17px ${BODY}`; const tw = cx.measureText(t).width;
+    if(!dry){ cx.fillStyle = url ? '#2a5c69' : '#5b5a63'; cx.fillText(t, xx, yy); if(url) cx.fillRect(xx, yy+3, tw, 1.2); }
+    if(url) links.push({x:xx, y:yy-17, w:tw, h:24, url});
+    xx += tw;
+  };
+  piece('Сайт: '); piece(BRAND.site, BRAND.siteUrl); piece('   ·   Вопросы и помощь — чат: ');
+  BRAND.chats.forEach(([t,u],i) => { if(i) piece(' и '); piece(t, u); });
+  return {h: yy - y + 10, links};
+}
+
+/* ---------- PDF без библиотек: страницы-картинки A4 ---------- */
+async function sheetPdfBlob(){
+  const src = await sheetCanvas({footer:false});
+  const PW=1240, PH=1754, FOOT=120, TOP=70, end = src._end, breaks = src._breaks;
+  const slices=[]; let y0=0;
+  while(y0 < end - 4){
+    const top = slices.length ? TOP : 0, avail = PH - FOOT - top;
+    let cut = Math.min(end, y0 + avail);
+    if(cut < end){ const ok = breaks.filter(b => b > y0 + 40 && b <= y0 + avail); if(ok.length) cut = Math.max(...ok); }
+    slices.push({y0, y1:cut, top}); y0 = cut;
+  }
+  const pages = slices.map((sl, i) => {
+    const cv = document.createElement('canvas'); cv.width=PW; cv.height=PH; const cx = cv.getContext('2d');
+    cx.fillStyle='#ffffff'; cx.fillRect(0,0,PW,PH);
+    cx.drawImage(src, 0, sl.y0, PW, sl.y1-sl.y0, 0, sl.top, PW, sl.y1-sl.y0);
+    const f = brandFooter(cx, 90, PH-FOOT, PW-180, false);
+    cx.font = '15px Manrope, Arial, sans-serif'; cx.fillStyle='#8a8992'; cx.textAlign='right'; cx.fillText(`${i+1} / ${slices.length}`, PW-90, PH-FOOT+34); cx.textAlign='left';
+    return {cv, links:f.links};
+  });
+  return makePdf(pages, scheme.name);
+}
+function makePdf(pages, title){
+  const enc = new TextEncoder(), chunks=[], offs=[]; let len=0;
+  const put = d => { const b = typeof d==='string' ? enc.encode(d) : d; chunks.push(b); len += b.length; };
+  const A4W=595.28, A4H=841.89;
+  const N = pages.length, info = 3 + N*4;
+  const obj = (id, body, stream) => { offs[id]=len; put(`${id} 0 obj\n`); put(body); if(stream){ put('\nstream\n'); put(stream); put('\nendstream'); } put('\nendobj\n'); };
+  const hex16 = t => '<FEFF' + Array.from(String(t)).map(c => { const u=c.codePointAt(0); if(u>0xffff){ const v=u-0x10000; return ((0xD800+(v>>10)).toString(16)+(0xDC00+(v&1023)).toString(16)).toUpperCase(); } return u.toString(16).padStart(4,'0').toUpperCase(); }).join('') + '>';
+  put('%PDF-1.4\n%\u00e2\u00e3\u00cf\u00d3\n');
+  obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2, `<< /Type /Pages /Count ${N} /Kids [${pages.map((_,i)=>`${3+i*4} 0 R`).join(' ')}] >>`);
+  pages.forEach((pg, i) => {
+    const P=3+i*4, C=P+1, I=P+2, L=P+3, k = A4W/pg.cv.width;
+    const b64 = pg.cv.toDataURL('image/jpeg', 0.9).split(',')[1], bin = atob(b64), jpg = new Uint8Array(bin.length); for(let j=0;j<bin.length;j++) jpg[j]=bin.charCodeAt(j);
+    const annots = pg.links.map(l => `<< /Type /Annot /Subtype /Link /Border [0 0 0] /Rect [${(l.x*k).toFixed(2)} ${(A4H-(l.y+l.h)*k).toFixed(2)} ${((l.x+l.w)*k).toFixed(2)} ${(A4H-l.y*k).toFixed(2)}] /A << /S /URI /URI (${l.url.replace(/[()\\]/g, m=>'\\'+m)}) >> >>`);
+    obj(P, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${A4W} ${A4H}] /Resources << /XObject << /Im0 ${I} 0 R >> >> /Contents ${C} 0 R /Annots ${L} 0 R >>`);
+    const cs = `q ${A4W} 0 0 ${A4H} 0 0 cm /Im0 Do Q`;
+    obj(C, `<< /Length ${cs.length} >>`, cs);
+    obj(I, `<< /Type /XObject /Subtype /Image /Width ${pg.cv.width} /Height ${pg.cv.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.length} >>`, jpg);
+    obj(L, `[${annots.join(' ')}]`);
+  });
+  obj(info, `<< /Title ${hex16(title||'Схема')} /Creator ${hex16('Челночок — '+BRAND.site)} /Producer (Chelnochok) >>`);
+  const xref = len; let x = `xref\n0 ${info+1}\n0000000000 65535 f \n`;
+  for(let id=1; id<=info; id++) x += String(offs[id]).padStart(10,'0') + ' 00000 n \n';
+  put(x); put(`trailer\n<< /Size ${info+1} /Root 1 0 R /Info ${info} 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  return new Blob(chunks, {type:'application/pdf'});
 }
 
 /* ---------- Скачивание ---------- */
@@ -1607,10 +1693,10 @@ let standalone = false; try{ standalone = !inClaude && window.top === window.sel
 if(inClaude){
   window.claude.use('downloads').then(d => { downloads = d; updateDlUI(); }).catch(()=>{ downloads=null; updateDlUI(); });
 } else { setTimeout(updateDlUI, 0); }
-function updateDlUI(){ const can = !!downloads || standalone; $('#dlNote').hidden = can; ['#dlSheet','#dlScheme','#dlTxt','#dlJson'].forEach(s => { $(s).hidden = !can; }); }
+function updateDlUI(){ const can = !!downloads || standalone; $('#dlNote').hidden = can; ['#dlPdf','#dlSheet','#dlScheme','#dlTxt','#dlJson'].forEach(s => { $(s).hidden = !can; }); }
 function fileBase(){ return (scheme.name||'схема').replace(/[\\/:*?"<>|«»]/g,'').replace(/\s+/g,' ').trim().slice(0,80) || 'схема'; }
 function plainDownload(filename, data){
-  const type = /\.png$/i.test(filename) ? 'image/png' : /\.json$/i.test(filename) ? 'application/json' : 'text/plain;charset=utf-8';
+  const type = /\.png$/i.test(filename) ? 'image/png' : /\.pdf$/i.test(filename) ? 'application/pdf' : /\.json$/i.test(filename) ? 'application/json' : 'text/plain;charset=utf-8';
   const blob = data instanceof Blob ? data : new Blob([data], {type});
   const go = href => { const a = document.createElement('a'); a.href = href; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); };
   if(location.protocol === 'file:'){ const fr = new FileReader(); fr.onload = () => go(fr.result); fr.readAsDataURL(blob); }
@@ -1624,6 +1710,7 @@ async function offer(filename, data){
   catch(e){ if(e && e.code==='declined') return; if(e && e.code==='rate_limited'){ toast('Уже открыто окно сохранения — сначала закройте его.'); return; } toast('Не удалось сохранить файл. ' + (e && e.message ? e.message : '')); }
 }
 const canvasBlob = cv => new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('Не получилось сделать картинку')), 'image/png'));
+$('#dlPdf').onclick = async () => { if(!scheme.elements.length){ toast('Схема пока пустая.'); return; } try{ toast('Собираю PDF…'); const blob = await sheetPdfBlob(); await offer(fileBase()+'.pdf', blob); }catch(e){ toast('Не получилось сделать PDF: '+e.message); } };
 $('#dlSheet').onclick = async () => { try{ const cv = await sheetCanvas(); await offer(fileBase()+' — схема и инструкция.png', await canvasBlob(cv)); }catch(e){ toast('Не получилось собрать лист: '+e.message); } };
 $('#dlScheme').onclick = async () => { if(!scheme.elements.length){ toast('Схема пока пустая.'); return; } try{ const {canvas} = await schemePngBlob(scheme, 2000); await offer(fileBase()+' — схема.png', await canvasBlob(canvas)); }catch(e){ toast('Не получилось сделать картинку: '+e.message); } };
 $('#dlTxt').onclick = () => offer(fileBase()+' — инструкция.txt', plainText(scheme));
@@ -1727,10 +1814,7 @@ let toastTimer=null;
 function toast(t){ const el=$('#toast'); el.textContent=t; el.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ el.hidden=true; }, 3600); }
 
 /* ---------- Чат поддержки ---------- */
-const CHAT = {
-  vk:  'https://vk.me/join/7FPcRWrxBaQ811QaREm8LLqYC6eg7tTh2nI=',
-  max: 'https://max.ru/join/muohF5mBUf9xrOgh1mDehkFeDuhu1ood3AIMv2v3AYU'
-};
+const CHAT = CHAT_LINKS;
 const LS_WELCOME = 'chelnochok.v1.welcome';
 $('#chatVk').href = CHAT.vk; $('#chatMax').href = CHAT.max;
 document.querySelectorAll('[data-chat]').forEach(a => { a.href = CHAT[a.dataset.chat]; });
