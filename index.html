@@ -232,6 +232,30 @@ main{padding-block:16px 40px}
   .canvas-tip{display:none}
 }
 @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+
+/* Инструменты «поставить на элемент» */
+.tool-cap{font-size:10px;font-weight:700;color:var(--muted);text-align:center;letter-spacing:.04em;text-transform:uppercase;padding:2px 0 0}
+.tool.on{background:var(--accent);color:var(--accent-ink)}
+.tool.on:hover{background:var(--accent)}
+.canvas-wrap.placing #canvas, .canvas-wrap.placing #canvas .el{cursor:crosshair}
+.place-tip{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:var(--sel);color:#fff;font-size:13px;font-weight:600;padding:7px 12px;border-radius:8px;display:flex;gap:10px;align-items:center;max-width:calc(100% - 20px);z-index:2}
+.place-tip button{border:1px solid rgba(255,255,255,.6);background:transparent;color:#fff;border-radius:6px;padding:3px 9px;font-weight:600;cursor:pointer;flex:none}
+#canvas .ghost{fill:none;stroke:var(--rose);stroke-width:1.6px;pointer-events:none}
+
+/* Поддержка */
+.btn.support{border-color:var(--accent);color:var(--accent)}
+.modal-bg{position:fixed;inset:0;background:rgba(15,16,22,.5);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--surface);border-radius:14px;max-width:480px;width:100%;padding:24px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 32px);overflow:auto}
+.modal h2{margin:0;font-family:var(--f-display);font-size:30px;font-weight:600;line-height:1.1}
+.modal p{margin:0;font-size:15px;line-height:1.55}
+.chat-btn{display:flex;align-items:center;gap:14px;border-radius:12px;padding:16px 18px;text-decoration:none;font-size:18px;font-weight:700;color:#fff}
+.chat-btn small{display:block;font-size:13px;font-weight:500;opacity:.9}
+.chat-btn .ic{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.2);display:grid;place-items:center;flex:none}
+.chat-btn.vk{background:#0b62d6}
+.chat-btn.max{background:#5b3fd6}
+.chat-btn:hover{filter:brightness(1.08)}
+.chat-btn:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.help .chat-row{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:12px 0}
 </style>
 </head>
 <body>
@@ -250,6 +274,7 @@ main{padding-block:16px 40px}
     <div class="name-field"><input id="schemeName" type="text" aria-label="Название схемы" placeholder="Название схемы"></div>
     <div class="top-actions">
       <span class="save-state" id="saveState"></span>
+      <button class="btn support" id="btnSupport" type="button"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 3.5h12v7H7l-3 3v-3H2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Чат поддержки</button>
       <button class="btn" id="btnLibrary" type="button"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 3h4l1.5 2H14v8H2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Мои схемы</button>
       <button class="btn primary" id="btnNew" type="button"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Новая схема</button>
     </div>
@@ -273,6 +298,13 @@ main{padding-block:16px 40px}
         <button class="tool" type="button" data-add="chain" title="Дуга"><svg viewBox="0 0 28 28"><path d="M3 21 Q14 2 25 21" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M14 11.5 v-3" stroke="currentColor" stroke-width="1.4"/></svg>Дуга</button>
         <button class="tool" type="button" data-add="line" title="Нить"><svg viewBox="0 0 28 28"><path d="M14 2 V26" stroke="currentColor" stroke-width="1.2"/><circle cx="14" cy="11" r="2.6" fill="currentColor"/><circle cx="14" cy="18" r="2.6" fill="currentColor"/></svg>Нить</button>
         <button class="tool" type="button" data-add="text" title="Подпись"><svg viewBox="0 0 28 28"><text x="14" y="19" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor" font-family="Arial">Аа</text></svg>Подпись</button>
+        <button class="tool" type="button" data-place="num" title="Поставить число узлов: выберите и нажмите на лист рядом с узлами"><svg viewBox="0 0 28 28"><text x="14" y="20" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor" font-family="Arial">5</text></svg>Число</button>
+        <div class="tool-sep"></div>
+        <div class="tool-cap">На кольцо</div>
+        <button class="tool" type="button" data-place="п" title="Поставить пико: выберите и нажмите на кольцо или дугу"><svg viewBox="0 0 28 28"><path d="M3 21 H25" stroke="currentColor" stroke-width="1.7"/><path d="M10 21 V12 Q14 6 18 12 V21" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Пико</button>
+        <button class="tool" type="button" data-place="сп" title="Поставить соединительное пико: выберите и нажмите на кольцо или дугу рядом с пико соседа"><svg viewBox="0 0 28 28"><path d="M3 21 H25" stroke="currentColor" stroke-width="1.7"/><path d="M14 21 V12" stroke="currentColor" stroke-width="1.5"/><circle cx="14" cy="10" r="3" fill="currentColor"/><path d="M16 8 L24 3" stroke="currentColor" stroke-width="1.1" stroke-dasharray="2.5 2"/></svg>Соед. пико</button>
+        <button class="tool" type="button" data-place="б" title="Поставить бусину: выберите и нажмите на кольцо или дугу"><svg viewBox="0 0 28 28"><path d="M3 15 H25" stroke="currentColor" stroke-width="1.7"/><circle cx="14" cy="15" r="4.6" fill="currentColor"/></svg>Бусина</button>
+        <button class="tool" type="button" data-place="x" title="Убрать пико, бусину или соединение: выберите и нажмите на знак"><svg viewBox="0 0 28 28"><path d="M7 7 L21 21 M21 7 L7 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Убрать</button>
         <div class="tool-sep"></div>
         <button class="tool" type="button" id="btnUndo" title="Отменить (Ctrl+Z)"><svg viewBox="0 0 28 28"><path d="M9 9 H17 a6 6 0 0 1 0 12 H10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 5 L8 9 L12 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Отменить</button>
         <button class="tool" type="button" id="btnRedo" title="Вернуть (Ctrl+Y)"><svg viewBox="0 0 28 28"><path d="M19 9 H11 a6 6 0 0 0 0 12 H18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 5 L20 9 L16 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Вернуть</button>
@@ -286,6 +318,7 @@ main{padding-block:16px 40px}
           <g id="world"></g>
         </svg>
         <div class="empty" id="emptyHint" hidden><div><b>Пустой лист</b>Начните с кнопки «Кольцо» слева — оно появится в центре.<br>Потом добавьте дугу и следующее кольцо.</div></div>
+        <div class="place-tip" id="placeTip" hidden><span id="placeTipText"></span><button type="button" id="placeDone">Готово</button></div>
         <div class="canvas-tip" id="canvasTip">Тяните элемент, чтобы передвинуть. Пустое место — двигать лист.</div>
         <div class="zoom">
           <button type="button" id="zOut" aria-label="Уменьшить">−</button>
@@ -347,6 +380,7 @@ main{padding-block:16px 40px}
             <li><code>пб</code> — пико с бусиной</li>
             <li><code>б</code> — бусина, <code>б3</code> — три бусины</li>
             <li><code>с А2</code> — соединить с пико №2 элемента А</li>
+            <li><code>сп</code> — соединительное пико (с соседним элементом)</li>
             <li><code>/</code> — граница половин разделённого кольца</li>
             <li>Привычная запись <code>5-5-5-5</code> тоже понимается</li>
           </ol>
@@ -380,7 +414,7 @@ main{padding-block:16px 40px}
       </header>
 
       <nav class="help-toc" aria-label="Содержание">
-        <a href="#h-start">Быстрый старт</a><a href="#h-screen">Что где на экране</a><a href="#h-new">Новая схема и «начать заново»</a><a href="#h-ring">Кольца и запись узлов</a><a href="#h-other">Дуги, разделённые кольца, нити</a><a href="#h-move">Двигать, вращать, удалять</a><a href="#h-join">Соединения</a><a href="#h-repeat">Снежинки и симметрия</a><a href="#h-desc">Описание и фото</a><a href="#h-instr">Инструкция</a><a href="#h-sheet">Готовый лист и скачивание</a><a href="#h-save">Где хранятся схемы</a><a href="#h-faq">Если что-то не так</a>
+        <a href="#h-start">Быстрый старт</a><a href="#h-screen">Что где на экране</a><a href="#h-new">Новая схема и «начать заново»</a><a href="#h-ring">Кольца и запись узлов</a><a href="#h-other">Дуги, разделённые кольца, нити</a><a href="#h-move">Двигать, вращать, удалять</a><a href="#h-join">Соединения</a><a href="#h-repeat">Снежинки и симметрия</a><a href="#h-desc">Описание и фото</a><a href="#h-instr">Инструкция</a><a href="#h-sheet">Готовый лист и скачивание</a><a href="#h-save">Где хранятся схемы</a><a href="#h-faq">Если что-то не так</a><a href="#h-support">Чат поддержки</a>
       </nav>
 
       <section id="h-start">
@@ -430,10 +464,13 @@ main{padding-block:16px 40px}
             <tr><td><code>пб</code></td><td>пико с бусиной</td><td><code>5 пб 5</code></td></tr>
             <tr><td><code>б</code>, <code>б3</code></td><td>бусина на нити, три бусины подряд</td><td><code>4 б 4</code></td></tr>
             <tr><td><code>с А2</code></td><td>соединить с пико №2 элемента А</td><td><code>5 с А2 5 п 5</code></td></tr>
+            <tr><td><code>сп</code></td><td>соединительное пико — соединить с соседним элементом</td><td><code>5 сп 5 п 5</code></td></tr>
             <tr><td><code>/</code></td><td>граница половин разделённого кольца</td><td><code>4 п 4 / 4 п 4</code></td></tr>
           </tbody>
         </table></div>
         <p>Привычная запись через дефис тоже понимается: <code>5-5-5-5</code> — это то же, что <code>5 п 5 п 5 п 5</code>.</p>
+        <p><b>Числа узлов на схеме</b> сами не пишутся — их ставите вы. Нажмите кнопку <b>«Число»</b> на панели слева, а потом на лист рядом с узлами: появится число, программа сразу подставит количество узлов этого участка. Его можно исправить в поле справа. Число можно перетащить мышкой, а лишнее — выделить и удалить. Если хотите, чтобы все числа писались сами, снимите выделение и в настройках справа включите <b>«Писать число узлов на схеме автоматически»</b>.</p>
+        <p><b>Можно не писать, а ставить мышкой.</b> На панели слева в группе <b>«На кольцо»</b> есть кнопки <b>Пико</b>, <b>Соед. пико</b>, <b>Бусина</b> и <b>Убрать</b>. Нажмите кнопку, а потом нажмите на кольцо или дугу в том месте, где нужен знак: он встанет между узлами, а запись узлов поправится сама. Так можно поставить несколько знаков подряд. Закончили — нажмите <b>«Готово»</b> над листом или клавишу Esc. Кнопка <b>«Убрать»</b> снимает пико, бусину или соединение, на которое вы нажали.</p>
         <p>Под полем видно, как программа поняла запись: каждое число и знак отдельной плашкой, и итог — сколько всего узлов, пико и бусин. Если какой-то знак <span class="bad-sample">подсвечен красным</span>, программа его не поняла — проверьте опечатку.</p>
         <p><b>Буква на схеме</b> (А, Б, В…) ставится сама, её можно поменять. По этой букве элемент называется в инструкции и в соединениях.</p>
         <p><b>Другие настройки кольца:</b></p>
@@ -474,6 +511,7 @@ main{padding-block:16px 40px}
         <h2>Соединения</h2>
         <p>Соединение — когда элемент присоединяют к пико другого элемента. Проще всего вставить его готовой строкой: в свойствах элемента найдите строку <b>«Соединить с … пико № …»</b>, выберите элемент, номер пико и нажмите <b>«Вставить»</b>. В запись добавится, например, <code>с А2</code>.</p>
         <p>Пико внутри элемента считаются по порядку записи: в кольце <code>5 п 5 п 5 п 5</code> первое «п» — пико №1, второе — №2 и так далее. Если соединяемые пико на схеме далеко друг от друга, их свяжет тонкая пунктирная линия — подвиньте элементы ближе, чтобы схема была похожа на работу.</p>
+        <p><b>Соединительное пико мышкой.</b> Поставьте элементы рядом так, как они лежат в работе. Нажмите <b>«Соед. пико»</b> на панели слева и нажмите на кольцо в том месте, которое касается пико соседа. Программа сама найдёт ближайшее пико и запишет, с чем соединять, например <code>с А2</code>. Если рядом пико нет, в записи появится <code>сп</code> — просто соединительное пико, его можно уточнить позже.</p>
         <p>Если указать элемент или пико, которого нет, под записью появится предупреждение.</p>
       </section>
 
@@ -530,7 +568,18 @@ main{padding-block:16px 40px}
           <dt>Не вижу схему на листе</dt><dd>Нажмите рамку «Показать всю схему» внизу справа.</dd>
           <dt>Пропали схемы</dt><dd>Скорее всего, приложение открыто в другом браузере или история была очищена. Откройте сохранённые файлы схем через «Мои схемы» → «Открыть файл схемы».</dd>
           <dt>Не открывается на телефоне</dt><dd>Лучше всего приложение работает на компьютере. На Android попробуйте открыть файл через Chrome. На iPhone встроенный просмотр файлов может его не запустить.</dd>
+          <dt>Ничего не помогло</dt><dd>Напишите в чат поддержки — кнопка <b>«Чат поддержки»</b> вверху экрана.</dd>
         </dl>
+      </section>
+
+      <section id="h-support">
+        <h2>Чат поддержки</h2>
+        <p>У «Челночка» есть общий чат для всех, кто им пользуется. Там можно задать любой вопрос по программе, предложить улучшение или показать свою работу. Отвечает автор программы.</p>
+        <div class="chat-row">
+          <a class="chat-btn vk" data-chat="vk" target="_blank" rel="noopener"><span>Чат во ВКонтакте<small>беседа «Челночка»</small></span></a>
+          <a class="chat-btn max" data-chat="max" target="_blank" rel="noopener"><span>Чат в Max<small>чат «Челночка»</small></span></a>
+        </div>
+        <p>Если вопрос про конкретную схему, нажмите <b>«Чат поддержки» → «Сохранить схему для чата»</b> и приложите сохранённый файл к сообщению. Так сразу будет видно, о чём речь.</p>
       </section>
     </article>
   </section>
@@ -550,6 +599,20 @@ main{padding-block:16px 40px}
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
+
+<div class="modal-bg" id="supportModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="supportTitle">
+    <h2 id="supportTitle">Чат поддержки</h2>
+    <p id="supportLead">Если что-то непонятно или не получается — напишите в общий чат. Там отвечает автор программы, а другие мастерицы делятся опытом и схемами. Выберите мессенджер, которым вы пользуетесь:</p>
+    <a class="chat-btn vk" id="chatVk" target="_blank" rel="noopener"><span class="ic"><svg width="22" height="22" viewBox="0 0 16 16"><path d="M2 3.5h12v7H7l-3 3v-3H2z" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg></span><span>Чат во ВКонтакте<small>откроется беседа, нажмите «Вступить»</small></span></a>
+    <a class="chat-btn max" id="chatMax" target="_blank" rel="noopener"><span class="ic"><svg width="22" height="22" viewBox="0 0 16 16"><path d="M2 3.5h12v7H7l-3 3v-3H2z" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg></span><span>Чат в Max<small>откроется чат, нажмите «Вступить»</small></span></a>
+    <p class="hint" style="font-size:13px">Вопрос про конкретную схему? Нажмите кнопку ниже: программа сохранит файл схемы, а вы приложите его к сообщению в чате. Так вам быстрее помогут.</p>
+    <div class="row" style="justify-content:space-between">
+      <button class="btn" type="button" id="supportSendScheme">Сохранить схему для чата</button>
+      <button class="btn primary" type="button" id="supportClose">Закрыть</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (() => {
@@ -584,6 +647,7 @@ function parseNotation(str){
     if(low.startsWith('пб',i)){ toks.push({t:'bp'}); i+=2; continue; }
     if(ch==='п' || ch==='-' || ch==='p'){ toks.push({t:'p'}); i++; continue; }
     if(ch==='б' || ch==='b'){ let j=i+1; while(j<s.length && /\d/.test(s[j])) j++; const n = j>i+1 ? parseInt(s.slice(i+1,j),10) : 1; toks.push({t:'bead', n:clamp(n||1,1,30)}); i=j; continue; }
+    if(ch==='с' && s[i+1]==='п'){ toks.push({t:'join', ref:null, n:null}); i+=2; continue; }
     if(ch==='с' || ch==='+' || ch==='c'){
       let j=i+1; while(j<s.length && /[\s(]/.test(s[j])) j++;
       let k=j; while(k<s.length && /[А-ЯЁA-Z]/.test(s[k])) k++;
@@ -601,7 +665,7 @@ function parseNotation(str){
 }
 function tokText(t){
   switch(t.t){ case 'ds': return String(t.n); case 'p': return 'п'; case 'lp': return 'дп'; case 'bp': return 'пб';
-    case 'bead': return t.n>1 ? 'б'+t.n : 'б'; case 'join': return 'с' + (t.ref ? ' '+t.ref+(t.n||'') : ''); case 'split': return '/'; }
+    case 'bead': return t.n>1 ? 'б'+t.n : 'б'; case 'join': return t.ref ? 'с '+t.ref+(t.n||'') : 'сп'; case 'split': return '/'; }
   return '';
 }
 function stats(toks){
@@ -640,7 +704,7 @@ function curvePts(x1,y1,x2,y2,b,N=72){
 function geomOf(el, st){
   if(el.type==='text'){
     const sz = el.size||14, w = Math.max(20, (el.text||'').length*sz*0.55);
-    return {el, text:true, anchors:[], picots:[], marks:[], runs:[], bbox:[el.x-w/2, el.y-sz, el.x+w/2, el.y+sz*0.4]};
+    return {el, text:true, anchors:[], picots:[], marks:[], runs:[], bbox: el.bold ? [el.x-w/2, el.y-sz*0.65, el.x+w/2, el.y+sz*0.65] : [el.x-w/2, el.y-sz, el.x+w/2, el.y+sz*0.4]};
   }
   const {toks} = parseNotation(el.notation);
   const S = stats(toks); const T = S.ds;
@@ -705,7 +769,7 @@ function dot(x,y,r,f,st){ return `<circle cx="${r1(x)}" cy="${r1(y)}" r="${r}" f
 function elMarkup(g, st, geoms, opt){
   const el = g.el;
   if(el.type==='text'){
-    return `<text x="${r1(el.x)}" y="${r1(el.y)}" font-size="${el.size||14}" font-family="${SVG_FONT}" text-anchor="middle" fill="${INK}">${esc(el.text||'')}</text>`;
+    return `<text x="${r1(el.x)}" y="${r1(el.y)}" font-size="${el.size||14}" font-family="${SVG_FONT}"${el.bold?' font-weight="700"':''} text-anchor="middle"${el.bold?' dominant-baseline="central"':''} fill="${INK}">${esc(el.text||'')}</text>`;
   }
   const col = shuttleColor(el, st), sw = opt.exp ? 1.9 : 1.6, bead = st.beadColor || '#c9962b';
   let s = `<path d="${g.d}" fill="none" stroke="${col}" stroke-width="${el.type==='line'?1.1:sw}" stroke-linejoin="round" stroke-linecap="round"/>`;
@@ -725,7 +789,7 @@ function elMarkup(g, st, geoms, opt){
     }
   }
   if(opt.labels){
-    for(const r of g.runs) s += `<text x="${r1(r.x)}" y="${r1(r.y)}" font-size="9.5" font-family="${SVG_FONT}" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="${INK}">${r.n}</text>`;
+    if(st.showCounts) for(const r of g.runs) s += `<text x="${r1(r.x)}" y="${r1(r.y)}" font-size="9.5" font-family="${SVG_FONT}" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="${INK}">${r.n}</text>`;
     if(el.label && g.label && el.type!=='line') s += `<text x="${r1(g.label.x)}" y="${r1(g.label.y)}" font-size="${r1(g.label.size)}" font-family="${SVG_FONT}" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="${LABEL}">${esc(el.label)}</text>`;
   }
   return s;
@@ -772,7 +836,7 @@ function exportSVG(sc, pxW=1400){
 }
 
 /* ---------- Состояние ---------- */
-const ST_DEFAULT = {repeat:1, mirror:false, stitch:5, grid:true, labelsFirstOnly:true, shuttleCount:2, colors:['#26232e','#2f5fa8'], beadColor:'#c9962b'};
+const ST_DEFAULT = {showCounts:false, repeat:1, mirror:false, stitch:5, grid:true, labelsFirstOnly:true, shuttleCount:2, colors:['#26232e','#2f5fa8'], beadColor:'#c9962b'};
 function blankScheme(name){
   return {id:uid('s'), name:name||'Новая схема', updated:Date.now(), sample:false,
     desc:{author:'', level:'', thread:'', beads:'', size:'', text:'', start:'', finish:'', photo:''},
@@ -947,11 +1011,117 @@ function snap(x, y, exceptId){
   snapMark = best; return best;
 }
 
+/* ---------- Знаки мышкой: пико, соединительное пико, бусина, убрать ---------- */
+let placeTool = null, placeRaf = 0;
+const PLACE_NAMES = {'п':'пико', 'сп':'соединительное пико', 'б':'бусину'};
+function setPlaceTool(t){
+  placeTool = (t && t!==placeTool) ? t : null;
+  document.querySelectorAll('[data-place]').forEach(b => { const on = b.dataset.place===placeTool; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+  $('#canvasWrap').classList.toggle('placing', !!placeTool);
+  $('#placeTip').hidden = !placeTool;
+  if(placeTool) $('#placeTipText').textContent = placeTool==='num' ? 'Нажмите на лист рядом с узлами и впишите число справа' : placeTool==='x' ?'Нажмите на пико, бусину или соединение, чтобы убрать' : `Нажмите на кольцо или дугу, куда поставить ${PLACE_NAMES[placeTool]}`;
+  snapMark = null; renderCanvas();
+}
+document.querySelectorAll('[data-place]').forEach(b => b.addEventListener('click', () => setPlaceTool(b.dataset.place)));
+$('#placeDone').onclick = () => setPlaceTool(null);
+
+function nearestOnPoly(pts, x, y){
+  let best=Infinity, bs=0, cum=0;
+  for(let i=1;i<pts.length;i++){
+    const ax=pts[i-1][0], ay=pts[i-1][1], dx=pts[i][0]-ax, dy=pts[i][1]-ay, L2=dx*dx+dy*dy, seg=Math.sqrt(L2);
+    const t = L2 ? clamp(((x-ax)*dx+(y-ay)*dy)/L2, 0, 1) : 0;
+    const d = Math.hypot(ax+dx*t-x, ay+dy*t-y);
+    if(d<best){ best=d; bs=cum+seg*t; }
+    cum += seg;
+  }
+  return {d:best, s:bs, total:cum};
+}
+// Куда встанет знак: ближайший элемент и номер узла, после которого он окажется
+function placeTarget(x, y){
+  if(!geoms) return null;
+  const lim = upp()*16; let best=null;
+  for(const g of geoms.list){
+    if(g.text) continue;
+    const r = nearestOnPoly(g.pts, x, y); if(r.d>lim || (best && r.d>=best.d)) continue;
+    const T = g.S.ds; let c = 0, s = r.s;
+    if(T>0){ c = Math.round(r.s/(r.total||1)*T); if(T>=2) c = clamp(c, 1, T-1); s = c/T*r.total; }
+    const q = polyInfo(g.pts).at(s);
+    best = {g, d:r.d, c, T, pt:[q.x, q.y]};
+  }
+  return best;
+}
+function insertTok(toks, c, tok){
+  if(c<=0) return [tok, ...toks];
+  const out=[]; let cum=0, done=false;
+  for(const t of toks){
+    if(!done && t.t==='ds' && cum+t.n>=c){
+      if(cum+t.n===c) out.push(t, tok); else out.push({t:'ds', n:c-cum}, tok, {t:'ds', n:cum+t.n-c});
+      done = true; cum += t.n; continue;
+    }
+    out.push(t); if(t.t==='ds') cum += t.n;
+  }
+  if(!done) out.push(tok);
+  return out;
+}
+function mergeDs(toks){
+  const out=[]; for(const t of toks){ const last = out[out.length-1]; if(t.t==='ds' && last && last.t==='ds') last.n += t.n; else out.push({...t}); } return out;
+}
+// Ближайшее пико другого элемента — с ним соединяем соединительное пико
+function nearestForeignPicot(el, x, y){
+  let best=null, bd = Math.max(upp()*18, scheme.settings.stitch*4);
+  for(const g of geoms.list){ if(g.el.id===el.id || g.text || !g.el.label) continue;
+    for(const p of g.picots){ const d = Math.hypot(p.x-x, p.y-y); if(d<bd){ bd=d; best={ref:g.el.label, n:p.idx}; } } }
+  return best;
+}
+function placeAt(x, y){
+  if(placeTool==='num'){
+    // подсказать число: ближайший отрезок узлов рядом с местом нажатия
+    let best=null, bd=Math.max(upp()*60, 25);
+    for(const g of geoms.list){ for(const r of g.runs){ const d=Math.hypot(r.x-x, r.y-y); if(d<bd){ bd=d; best=r; } } }
+    const el = {id:uid('e'), type:'text', label:'', text: best ? String(best.n) : '5', size:10, bold:true, x:r1(best ? best.x : x), y:r1(best ? best.y : y), note:''};
+    scheme.elements.push(el); selId = el.id; renderCanvas(); renderPanel(); commit();
+    const inp = $('#f-text'); if(inp){ inp.focus(); inp.select(); }
+    return true;
+  }
+  if(placeTool==='x'){
+    const lim = upp()*14; let best=null;
+    for(const g of geoms.list){ if(g.text) continue;
+      g.marks.forEach((m, k) => { if(m.tk.t==='split') return; const pts=[[m.q.x,m.q.y]]; if(m.tip) pts.push(m.tip);
+        for(const p of pts){ const d=Math.hypot(p[0]-x, p[1]-y); if(d<lim && (!best || d<best.d)) best={g, k, d}; } }); }
+    if(!best) return false;
+    const el = best.g.el; const {toks} = parseNotation(el.notation);
+    let k=-1; const kept = toks.filter(t => { if(t.t==='ds') return true; k++; return k!==best.k; });
+    el.notation = mergeDs(kept).map(tokText).join(' ');
+    selId = el.id; renderCanvas(); renderPanel(); commit(); toast('Знак убран');
+    return true;
+  }
+  const tg = placeTarget(x, y); if(!tg) return false;
+  const el = tg.g.el; const {toks} = parseNotation(el.notation);
+  let tok = placeTool==='б' ? {t:'bead', n:1} : placeTool==='сп' ? {t:'join', ref:null, n:null} : {t:'p'};
+  let newToks = insertTok(toks, tg.T>0 ? tg.c : 0, tok);
+  if(placeTool==='сп'){
+    // найти, где окажется новый знак, и подобрать пико соседа рядом с ним
+    const idx = newToks.indexOf(tok), k = newToks.slice(0, idx).filter(t=>t.t!=='ds').length;
+    const g2 = geomOf({...el, notation: newToks.map(tokText).join(' ')}, scheme.settings);
+    const m = g2.marks[k]; const at = m ? (m.tip || [m.q.x, m.q.y]) : tg.pt;
+    const nb = nearestForeignPicot(el, at[0], at[1]);
+    if(nb){ tok.ref = nb.ref; tok.n = nb.n; }
+  }
+  el.notation = newToks.map(tokText).join(' ');
+  selId = el.id; snapMark = null; renderCanvas(); renderPanel(); commit();
+  if(placeTool==='сп') toast(tok.ref ? `Соединение с пико №${tok.n} элемента ${tok.ref}` : 'Соединительное пико поставлено. Рядом нет пико соседа — уточните соединение в записи узлов.');
+  return true;
+}
+
 /* ---------- Мышь и пальцы ---------- */
 let drag = null;
 svg.addEventListener('pointerdown', e => {
   if(e.button>0) return;
   const p = toWorld(e);
+  const onText = (() => { const gg = e.target.closest('g.el'); const it = gg && byId(gg.dataset.id); return !!(it && it.type==='text'); })();
+  if(placeTool && !e.target.closest('[data-handle]') && !(placeTool==='num' && onText)){
+    if(placeAt(p.x, p.y)){ e.preventDefault(); return; }
+  }
   const h = e.target.closest('[data-handle]'), gEl = e.target.closest('g.el');
   if(h && selId){ const el = byId(selId); drag = {kind:h.dataset.handle, el, p0:p, orig:{...el}, moved:false}; }
   else if(gEl){ const id = gEl.dataset.id; if(id!==selId){ selId=id; renderCanvas(); renderPanel(); } const el = byId(id); drag = {kind:'move', el, p0:p, orig:{...el}, moved:false}; }
@@ -960,6 +1130,12 @@ svg.addEventListener('pointerdown', e => {
   e.preventDefault();
 });
 svg.addEventListener('pointermove', e => {
+  if(!drag && placeTool && placeTool!=='x' && placeTool!=='num' && e.pointerType!=='touch'){
+    const p = toWorld(e); cancelAnimationFrame(placeRaf);
+    placeRaf = requestAnimationFrame(() => { const tg = placeTarget(p.x, p.y); const nm = tg ? tg.pt : null;
+      if(String(nm)!==String(snapMark)){ snapMark = nm; renderCanvas(); } });
+    return;
+  }
   if(!drag) return;
   if(drag.kind==='pan'){ view.x = drag.v0.x - (e.clientX-drag.c0[0])*drag.u; view.y = drag.v0.y - (e.clientY-drag.c0[1])*drag.u; applyView(); return; }
   const p = toWorld(e), dx = p.x-drag.p0.x, dy = p.y-drag.p0.y;
@@ -996,12 +1172,14 @@ $('#zOut').onclick = () => zoom(1.25);
 $('#zFit').onclick = fitView;
 
 document.addEventListener('keydown', e => {
+  if(e.key==='Escape' && placeTool && $('#libOverlay').hidden && $('#supportModal').hidden){ e.preventDefault(); if(document.activeElement && document.activeElement.blur) document.activeElement.blur(); setPlaceTool(null); return; }
   const tag = (e.target.tagName||'').toLowerCase();
   if(tag==='input' || tag==='textarea' || tag==='select' || e.target.isContentEditable) return;
   if(!$('#tab-scheme').classList.contains('on')) return;
   const mod = e.ctrlKey || e.metaKey;
   if(mod && e.key.toLowerCase()==='z' && !e.shiftKey){ e.preventDefault(); undo(); return; }
   if(mod && (e.key.toLowerCase()==='y' || (e.key.toLowerCase()==='z' && e.shiftKey))){ e.preventDefault(); redo(); return; }
+  if(e.key==='Escape' && placeTool){ e.preventDefault(); setPlaceTool(null); return; }
   if(!selId) return;
   const el = byId(selId); if(!el) return;
   if(e.key==='Delete' || e.key==='Backspace'){ e.preventDefault(); deleteSel(); return; }
@@ -1049,7 +1227,7 @@ function renderPanel(){
   const el = selId && byId(selId);
   if(!el){ panel.innerHTML = settingsPanelHTML(); syncSettingsValues(); return; }
   const T = TYPES[el.type];
-  let h = `<div><div class="kind">${T.name}</div><h3>${el.type==='text' ? 'Подпись на схеме' : T.name+' '+esc(el.label||'')}</h3></div>`;
+  let h = `<div><div class="kind">${el.bold ? 'Число' : T.name}</div><h3>${el.type==='text' ? (el.bold ? 'Число узлов на схеме' : 'Подпись на схеме') : T.name+' '+esc(el.label||'')}</h3></div>`;
   if(el.type==='text'){
     h += `<label class="fld">Текст<input type="text" id="f-text" data-f="text"></label>
           <label class="fld">Размер букв<input type="range" id="f-size" data-f="size" min="8" max="40" step="1"></label>`;
@@ -1168,12 +1346,16 @@ function settingsPanelHTML(){
       <label class="fld">Бусины<input type="color" id="s-beadColor" data-s="beadColor"></label>
     </div>
     <label class="fld">Длина узла на схеме<input type="range" id="s-stitch" data-s="stitch" min="3" max="9" step="0.5"></label>
+    <label class="check"><input type="checkbox" id="s-showCounts" data-s="showCounts"> Писать число узлов на схеме автоматически</label>
+    <p class="hint" style="margin-top:-6px">Если выключено, числа ставятся вручную кнопкой «Число» слева: нажмите её, а потом на лист рядом с узлами.</p>
     <label class="check"><input type="checkbox" id="s-labelsFirstOnly" data-s="labelsFirstOnly"> Числа и буквы только на первом мотиве</label>
     <label class="check"><input type="checkbox" id="s-grid" data-s="grid"> Сетка</label>
     <div class="howto"><b>Как собрать схему</b><ol>
       <li>Нажмите «Кольцо» и впишите узлы, например <b>5 п 5 п 5 п 5</b>.</li>
       <li>Не снимая выделения, нажмите «Дуга»: она начнётся от основания кольца.</li>
       <li>Тяните элементы — основания и концы дуг прилипают к пико и соседям.</li>
+      <li>Пико, соединения и бусины можно ставить мышкой: кнопки группы «На кольцо» слева.</li>
+      <li>Числа узлов на схеме ставятся кнопкой «Число».</li>
       <li>Для снежинки нарисуйте один луч и поставьте «Повтор по кругу».</li>
       <li>Во вкладке «Инструкция» текст уже готов, в «Готовом листе» — схема для скачивания.</li>
     </ol></div>`;
@@ -1182,7 +1364,7 @@ function syncSettingsValues(){
   const st = scheme.settings; const set=(id,v,p='value')=>{ const n=document.getElementById(id); if(n) n[p]=v; };
   set('s-repeat', st.repeat); set('s-shuttleCount', String(st.shuttleCount)); set('s-mirror', !!st.mirror, 'checked');
   set('s-color0', st.colors[0]); set('s-color1', st.colors[1]); set('s-beadColor', st.beadColor); set('s-stitch', st.stitch);
-  set('s-labelsFirstOnly', !!st.labelsFirstOnly, 'checked'); set('s-grid', !!st.grid, 'checked');
+  set('s-labelsFirstOnly', !!st.labelsFirstOnly, 'checked'); set('s-showCounts', !!st.showCounts, 'checked'); set('s-grid', !!st.grid, 'checked');
 }
 function applySetting(t){
   const st = scheme.settings, k = t.dataset.s, v = t.type==='checkbox' ? t.checked : t.value;
@@ -1206,7 +1388,7 @@ function phrase(toks){
       case 'bp': out.push('пико с бусиной'); break;
       case 'bead': out.push(t.n>1 ? `надвинуть ${t.n} ${plural(t.n,'бусину','бусины','бусин')}` : 'надвинуть бусину'); break;
       case 'join': {
-        if(!t.ref){ out.push('соединить с соседним пико'); break; }
+        if(!t.ref){ out.push('соединительное пико (соединить с пико соседнего элемента)'); break; }
         const tg = scheme.elements.find(e=>e.label===t.ref); const gen = tg ? TYPES[tg.type].gen : 'элемента';
         out.push(t.n ? `соединить с пико №${t.n} ${gen} ${t.ref}` : `соединить с ${gen} ${t.ref}`); break; }
     }
@@ -1251,7 +1433,7 @@ function plainText(sc){
   L.push(sc.name.toUpperCase()); L.push('');
   const meta = metaList(sc); meta.forEach(([k,v]) => L.push(`${k}: ${v}`)); if(meta.length) L.push('');
   if(d.text){ L.push(d.text); L.push(''); }
-  L.push('Обозначения: дв. у. — двойной узел; п — пико; дп — длинное пико; пб — пико с бусиной; б — бусина; с А2 — соединить с пико №2 элемента А; К — кольцо; РК — разделённое кольцо; Д — дуга; ПР — перевернуть работу.'); L.push('');
+  L.push('Обозначения: дв. у. — двойной узел; п — пико; дп — длинное пико; пб — пико с бусиной; б — бусина; с А2 — соединить с пико №2 элемента А; сп — соединительное пико; К — кольцо; РК — разделённое кольцо; Д — дуга; ПР — перевернуть работу.'); L.push('');
   if(d.start){ L.push('Перед началом: '+d.start); L.push(''); }
   L.push('ХОД РАБОТЫ');
   ins.steps.forEach(s => { L.push(`${s.n}. ${s.title}. ${s.text}`); L.push(`   (${s.short})`); if(s.note) L.push('   '+s.note); });
@@ -1289,7 +1471,7 @@ function legendHTML(sc){
     [ic(`<path d="M3 20 H31" stroke="${c}" stroke-width="1.5"/><path d="M17 20 V5" stroke="${c}" stroke-width="1.3"/>`), 'дп — длинное пико'],
     [ic(`<path d="M3 19 H31" stroke="${c}" stroke-width="1.5"/><path d="M17 19 V11" stroke="${c}" stroke-width="1.3"/><circle cx="17" cy="8" r="3" fill="${b}"/>`), 'пб — пико с бусиной'],
     [ic(`<path d="M3 13 H31" stroke="${c}" stroke-width="1.5"/><circle cx="17" cy="13" r="3.2" fill="${b}"/>`), 'б — бусина на нити'],
-    [ic(`<path d="M3 17 H31" stroke="${c}" stroke-width="1.5"/><path d="M17 17 V12" stroke="${c}" stroke-width="1.3"/><circle cx="17" cy="11.5" r="2.1" fill="${c}"/><path d="M17 11 L25 4" stroke="${LINK}" stroke-width="0.9" stroke-dasharray="2.5 2"/>`), 'с — соединение'],
+    [ic(`<path d="M3 17 H31" stroke="${c}" stroke-width="1.5"/><path d="M17 17 V12" stroke="${c}" stroke-width="1.3"/><circle cx="17" cy="11.5" r="2.1" fill="${c}"/><path d="M17 11 L25 4" stroke="${LINK}" stroke-width="0.9" stroke-dasharray="2.5 2"/>`), 'сп, с А2 — соединительное пико'],
     [ic(`<text x="17" y="16" text-anchor="middle" font-size="11" font-weight="700" font-family="Arial" fill="${INK}">5</text>`), 'число — двойные узлы'],
     [ic(`<text x="17" y="16" text-anchor="middle" font-size="10" font-weight="700" font-family="Arial" fill="${INK}">ПР</text>`), 'перевернуть работу']
   ];
@@ -1363,7 +1545,7 @@ async function sheetCanvas(){
   const DISP='"Cormorant Garamond", Georgia, serif', BODY='Manrope, Arial, sans-serif', MONO='"PT Mono", Consolas, monospace';
   const {canvas:sch} = sc.elements.length ? await schemePngBlob(sc, 1600) : {canvas:null};
   let photo=null; if(d.photo){ photo = new Image(); photo.src=d.photo; try{ await photo.decode(); }catch(_){ photo=null; } }
-  const legend = ['К — кольцо','РК — разделённое кольцо','Д — дуга','п — пико','дп — длинное пико','пб — пико с бусиной','б — бусина','с — соединение','число — двойные узлы','ПР — перевернуть работу'];
+  const legend = ['К — кольцо','РК — разделённое кольцо','Д — дуга','п — пико','дп — длинное пико','пб — пико с бусиной','б — бусина','сп, с А2 — соединительное пико','число — двойные узлы','ПР — перевернуть работу'];
   function draw(cx, dry){
     let y = M;
     const text = (t, font, color, x, yy) => { if(!dry){ cx.font=font; cx.fillStyle=color; cx.fillText(t, x, yy); } };
@@ -1532,6 +1714,36 @@ function renderAll(){
 
 let toastTimer=null;
 function toast(t){ const el=$('#toast'); el.textContent=t; el.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ el.hidden=true; }, 3600); }
+
+/* ---------- Чат поддержки ---------- */
+const CHAT = {
+  vk:  'https://vk.me/join/7FPcRWrxBaQ811QaREm8LLqYC6eg7tTh2nI=',
+  max: 'https://max.ru/join/muohF5mBUf9xrOgh1mDehkFeDuhu1ood3AIMv2v3AYU'
+};
+const LS_WELCOME = 'chelnochok.v1.welcome';
+$('#chatVk').href = CHAT.vk; $('#chatMax').href = CHAT.max;
+document.querySelectorAll('[data-chat]').forEach(a => { a.href = CHAT[a.dataset.chat]; });
+const supportModal = $('#supportModal');
+function openSupport(first){
+  $('#supportTitle').textContent = first ? 'Добро пожаловать в «Челночок»!' : 'Чат поддержки';
+  $('#supportLead').textContent = first
+    ? 'У программы есть общий чат для всех мастериц. Вступите в него сейчас — там можно задать любой вопрос, если что-то не получается, предложить улучшение или показать свою работу. Выберите мессенджер, которым вы пользуетесь:'
+    : 'Если что-то непонятно или не получается — напишите в общий чат. Там отвечает автор программы, а другие мастерицы делятся опытом и схемами. Выберите мессенджер, которым вы пользуетесь:';
+  $('#supportClose').textContent = first ? 'Позже' : 'Закрыть';
+  $('#supportSendScheme').hidden = first;
+  supportModal.hidden = false; $('#chatVk').focus();
+}
+function closeSupport(){ supportModal.hidden = true; lsSet(LS_WELCOME, '1'); }
+$('#btnSupport').onclick = () => openSupport(false);
+$('#supportClose').onclick = closeSupport;
+supportModal.addEventListener('click', e => { if(e.target===supportModal) closeSupport(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape' && !supportModal.hidden) closeSupport(); });
+['#chatVk','#chatMax'].forEach(s => $(s).addEventListener('click', () => lsSet(LS_WELCOME, '1')));
+$('#supportSendScheme').onclick = async () => {
+  if(!scheme.elements.length){ toast('Схема пока пустая — опишите вопрос словами прямо в чате.'); return; }
+  await offer(fileBase()+' — для чата.json', JSON.stringify(scheme));
+};
+if(!lsGet(LS_WELCOME)) setTimeout(() => openSupport(true), 600);
 
 /* ---------- Старт ---------- */
 window.addEventListener('resize', () => renderCanvas());
