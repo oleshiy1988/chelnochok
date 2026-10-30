@@ -96,7 +96,7 @@ main{padding-block:16px 40px}
 .zoom{position:absolute;right:10px;bottom:10px;display:flex;gap:4px}
 .zoom button{width:36px;height:36px;border-radius:8px;border:1px solid #d6d9e1;background:#fff;color:#23212b;cursor:pointer;font-size:18px;font-weight:600;display:grid;place-items:center}
 .zoom button:focus-visible{outline:2px solid var(--sel)}
-.canvas-tip{position:absolute;left:10px;bottom:10px;font-size:12px;color:#5b6072;background:rgba(255,255,255,.85);padding:5px 9px;border-radius:6px;max-width:calc(100% - 170px)}
+.canvas-tip{position:absolute;left:10px;bottom:10px;font-size:12px;color:#5b6072;background:rgba(255,255,255,.85);padding:5px 9px;border-radius:6px;max-width:calc(100% - 330px)}
 .empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#5b6072;pointer-events:none;padding:20px}
 .empty b{display:block;font-family:var(--f-display);font-size:26px;color:#23212b;font-weight:600;margin-bottom:6px}
 
@@ -249,6 +249,19 @@ main{padding-block:16px 40px}
 .place-tip{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:var(--sel);color:#fff;font-size:13px;font-weight:600;padding:7px 12px;border-radius:8px;display:flex;gap:10px;align-items:center;max-width:calc(100% - 20px);z-index:2}
 .place-tip button{border:1px solid rgba(255,255,255,.6);background:transparent;color:#fff;border-radius:6px;padding:3px 9px;font-weight:600;cursor:pointer;flex:none}
 #canvas .ghost{fill:none;stroke:var(--rose);stroke-width:1.6px;pointer-events:none}
+/* Подсветка: текущий элемент и нажатие */
+.tool.cur{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.tool:active:not(:disabled){background:var(--accent);color:var(--accent-ink)}
+.place-tip .tip-x{font-size:16px;line-height:1;padding:3px 8px}
+.tip-again{position:absolute;left:50%;top:10px;transform:translateX(-50%);border:1px solid var(--sel);background:#fff;color:var(--sel);font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;cursor:pointer;z-index:2}
+/* Правая панель: скрыть / показать */
+.zoom .panel-tgl{width:auto;padding:0 12px;font-size:13px;font-weight:700;gap:6px;display:flex;align-items:center;margin-right:6px}
+.zoom .panel-tgl.off{background:var(--sel);color:#fff;border-color:var(--sel)}
+.editor.nopanel{grid-template-columns:auto minmax(0,1fr)}
+.editor.nopanel .panel{display:none}
+@media (max-width: 760px){ .editor.nopanel{grid-template-columns:minmax(0,1fr)} }
+/* Ввод числа и подписи прямо на схеме */
+.inline-edit{position:absolute;z-index:4;transform:translate(-50%,-50%);min-width:56px;text-align:center;font:700 18px Arial,sans-serif;color:#23212b;background:#fff;border:2px solid var(--sel);border-radius:8px;padding:6px 8px;box-shadow:0 6px 18px rgba(0,0,0,.18);outline:none}
 
 /* Планшет: крупные кнопки, без двойного зума страницы */
 button, .tool, .btn, .chipbtn, a{touch-action:manipulation}
@@ -337,9 +350,11 @@ button, .tool, .btn, .chipbtn, a{touch-action:manipulation}
           <g id="world"></g>
         </svg>
         <div class="empty" id="emptyHint" hidden><div><b>Пустой лист</b>Начните с кнопки «Кольцо» слева — оно появится в центре, без пико.<br>Пико поставьте кнопкой «Пико», потом добавьте дугу и следующее кольцо.</div></div>
-        <div class="place-tip" id="placeTip" hidden><span id="placeTipText"></span><button type="button" id="placeDone">Готово</button></div>
+        <div class="place-tip" id="placeTip" hidden><span id="placeTipText"></span><button type="button" id="placeDone" class="tip-x" title="Скрыть подсказку (инструмент останется выбран)" aria-label="Скрыть подсказку">✕</button></div>
+        <button type="button" class="tip-again" id="tipAgain" hidden>? подсказка</button>
         <div class="canvas-tip" id="canvasTip">Тяните элемент или пико пальцем. Подержите — удалить. Два пальца — приблизить.</div>
         <div class="zoom">
+          <button type="button" id="panelTgl" class="panel-tgl" aria-pressed="false" title="Скрыть или показать правую панель">Скрыть панель ▸</button>
           <button type="button" id="zOut" aria-label="Уменьшить">−</button>
           <button type="button" id="zFit" aria-label="Показать всю схему" title="Показать всю схему"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
           <button type="button" id="zIn" aria-label="Увеличить">+</button>
@@ -456,7 +471,7 @@ button, .tool, .btn, .chipbtn, a{touch-action:manipulation}
           <dt>Вкладки</dt><dd><b>Схема</b> — рисование. <b>Описание и фото</b> — нитки, размер, сложность, фото готовой работы. <b>Инструкция</b> — пошаговый текст, который пишется сам. <b>Готовый лист</b> — всё вместе для скачивания. <b>Как пользоваться</b> — эта страница.</dd>
           <dt>Панель слева</dt><dd>Сверху: <b>Кольцо, Дуга, Пико, Бусина, Число</b>. Ниже: <b>Нить, Подпись, Ластик, Отменить</b> и <b>Вернуть</b>. На телефоне эта панель стоит над листом.</dd>
           <dt>Лист в середине</dt><dd>Здесь рисуется схема. Внизу справа кнопки <b>−</b> и <b>+</b> (масштаб) и рамка <b>«Показать всю схему»</b>.</dd>
-          <dt>Панель справа</dt><dd>Если ничего не выделено, тут <b>настройки всей схемы</b>. Если нажать на элемент — его <b>свойства</b>: узлы, челнок, форма, примечание. На телефоне эта панель под листом.</dd>
+          <dt>Панель справа</dt><dd>Если ничего не выделено, тут <b>настройки всей схемы</b>. Если нажать на элемент — его <b>свойства</b>: узлы, челнок, форма, примечание. На телефоне эта панель под листом. Кнопка <b>«Скрыть панель»</b> внизу листа убирает панель, чтобы лист стал шире; <b>«Показать панель»</b> возвращает её. Программа запоминает ваш выбор.</dd>
         </dl>
       </section>
 
@@ -485,8 +500,8 @@ button, .tool, .btn, .chipbtn, a{touch-action:manipulation}
           </tbody>
         </table></div>
         <p>Привычная запись через дефис тоже понимается: <code>5-5-5-5</code> — это то же, что <code>5 п 5 п 5 п 5</code>.</p>
-        <p><b>Числа узлов на схеме</b> сами не пишутся — их ставите вы. Нажмите кнопку <b>«Число»</b> на панели слева, а потом на лист рядом с узлами: появится число, программа сразу подставит количество узлов этого участка. Его можно исправить в поле справа. Число можно перетащить мышкой, а лишнее — выделить и удалить. Если хотите, чтобы все числа писались сами, снимите выделение и в настройках справа включите <b>«Писать число узлов на схеме автоматически»</b>.</p>
-        <p><b>Можно не писать, а ставить пальцем или мышкой.</b> Нажмите на панели слева <b>«Пико»</b> или <b>«Бусина»</b>, а потом на кольцо или дугу в том месте, где нужен знак: он встанет между узлами, а запись узлов поправится сама. Так можно поставить несколько знаков подряд. Закончили — нажмите <b>«Готово»</b> над листом или клавишу Esc. Уже поставленное пико или бусину можно <b>перетащить</b> вдоль кольца пальцем. <b>Ластик</b> стирает то, на что вы нажали: пико, бусину или целиком кольцо, дугу, нить, подпись, число. Удалить можно и так: <b>нажмите на элемент и подержите</b> — появится кнопка «Удалить».</p>
+        <p><b>Числа узлов на схеме</b> сами не пишутся — их ставите вы. Нажмите кнопку <b>«Число»</b> на панели слева, а потом на лист рядом с узлами: появится число, программа сразу подставит количество узлов этого участка, и прямо на схеме откроется окошко — впишите своё число и нажмите Enter (или просто нажмите в другое место). Чтобы потом исправить число, нажмите на него, а затем ещё раз — окошко откроется снова. Число можно перетащить мышкой, а лишнее — выделить и удалить. Если хотите, чтобы все числа писались сами, снимите выделение и в настройках справа включите <b>«Писать число узлов на схеме автоматически»</b>.</p>
+        <p><b>Можно не писать, а ставить пальцем или мышкой.</b> Нажмите на панели слева <b>«Пико»</b> или <b>«Бусина»</b>, а потом на кольцо или дугу в том месте, где нужен знак: он встанет между узлами, а запись узлов поправится сама. Так можно поставить несколько знаков подряд. Инструмент остаётся включённым (кнопка подсвечена), пока вы не нажмёте на неё ещё раз или клавишу Esc. Крестик ✕ у подсказки над листом прячет только подсказку, инструмент не выключается. Пока выбрана «Бусина», кружок показывает, куда она встанет: на кольцо или дугу — на нить, в любое другое место листа — отдельной бусиной. На планшете кружок едет за пальцем, а бусина ставится, когда отпускаете палец. Уже поставленное пико или бусину можно <b>перетащить</b> вдоль кольца пальцем (сначала выделите кольцо). Отдельное пико можно <b>растянуть или укоротить</b> — тяните его за кончик. <b>Ластик</b> стирает то, на что вы нажали: пико, бусину или целиком кольцо, дугу, нить, подпись, число. Удалить можно и так: <b>нажмите на элемент и подержите</b> — появится кнопка «Удалить».</p>
         <p>Под полем видно, как программа поняла запись: каждое число и знак отдельной плашкой, и итог — сколько всего узлов, пико и бусин. Если какой-то знак <span class="bad-sample">подсвечен красным</span>, программа его не поняла — проверьте опечатку.</p>
         <p><b>Буква на схеме</b> (А, Б, В…) ставится сама, её можно поменять. По этой букве элемент называется в инструкции и в соединениях.</p>
         <p><b>Другие настройки кольца:</b></p>
@@ -504,7 +519,7 @@ button, .tool, .btn, .chipbtn, a{touch-action:manipulation}
         <ul>
           <li><b>Дуга</b> (цепочка) — записывается так же: <code>7 п 7</code>. У дуги три ручки: два кружка — начало и конец, ромбик посередине — изгиб. Изгиб можно менять и ползунком в панели. Галочка <b>«Пико на другую сторону»</b> переносит пико на внутреннюю сторону дуги.</li>
           <li><b>Нить</b> — прямой отрезок нити, например подвес или нить под паучка. В запись можно поставить бусины: <code>б б б</code> или <code>б5</code>.</li>
-          <li><b>Подпись</b> — любой текст на схеме («начало», «ряд 2»). Текст и размер букв меняются в панели справа. В инструкцию подписи не попадают.</li>
+          <li><b>Подпись</b> — любой текст на схеме («начало», «ряд 2»). Текст можно впечатать прямо на схеме: при добавлении окошко открывается само, а потом — нажмите на подпись и ещё раз. Размер букв — в панели справа. В инструкцию подписи не попадают.</li>
         </ul>
       </section>
 
@@ -518,7 +533,7 @@ button, .tool, .btn, .chipbtn, a{touch-action:manipulation}
           <li><b>Копия</b> — кнопка в панели справа, рядом появится такой же элемент со следующей буквой.</li>
           <li><b>Удалить</b> — кнопка в панели справа, нажать два раза.</li>
           <li><b>Удалить пальцем</b> — нажмите на элемент (или на пико, бусину) и подержите: появится кнопка «Удалить».</li>
-          <li><b>Размер</b> — кнопки <b>−</b> и <b>+</b> вверху панели справа или квадратная ручка на кончике кольца. Там же можно сделать крупнее или мельче пико и бусины этого элемента.</li>
+          <li><b>Размер</b> — кнопки <b>−</b> и <b>+</b> вверху панели справа или квадратная ручка на кончике кольца. Там же можно сделать крупнее или мельче сразу все пико и бусины этого элемента. Одно пико — тяните за кончик. У отдельной бусины есть квадратик сбоку — тяните его, чтобы изменить размер.</li>
           <li><b>На планшете</b> лист приближают двумя пальцами, как фотографию.</li>
           <li><b>Передвинуть часть схемы целиком</b> (например, раппорт) — нажмите <b>«Выделить»</b> слева и обведите пальцем рамку вокруг нужных элементов. Потом тяните любой из них — поедет вся часть. Справа есть <b>«Копия»</b> — повторить эту часть рядом.</li>
           <li><b>Пико или бусину передвинуть</b> — сначала нажмите на кольцо, чтобы его выделить, потом тяните пико вдоль кольца.</li>
@@ -765,10 +780,10 @@ function geomOf(el, st){
     let s;
     if(T>0){ s = cum/T*total; if(cum===lastAt){ stack++; } else { stack=0; lastAt=cum; } s += stack*8; if(closed && s>total) s-=total; }
     else { s = (k+1)/(nonDs+1)*total; }
-    k++;
+    const mi = k; k++;
     const q = pi.at(s), n = normal(q);
     const m = {tk, q, n};
-    if(tk.t==='p'||tk.t==='lp'||tk.t==='bp'){ pidx++; const len = (tk.t==='lp'?14:(tk.t==='bp'?11:7)) * (el.pscale||1); m.idx=pidx; m.tip=[q.x+n[0]*len, q.y+n[1]*len]; picots.push({idx:pidx, x:m.tip[0], y:m.tip[1]}); }
+    if(tk.t==='p'||tk.t==='lp'||tk.t==='bp'){ pidx++; const ps = el.pscale||1, f = (el.plens && el.plens[mi]) || 1; const len = (tk.t==='lp'?14:(tk.t==='bp'?11:7)) * ps * f; m.idx=pidx; m.tip=[q.x+n[0]*len, q.y+n[1]*len]; m.stem = Math.max(2, len - 3*ps); picots.push({idx:pidx, x:m.tip[0], y:m.tip[1]}); }
     if(tk.t==='join'){ m.tip=[q.x+n[0]*5.5, q.y+n[1]*5.5]; }
     marks.push(m);
   }
@@ -804,7 +819,7 @@ function elMarkup(g, st, geoms, opt){
     switch(m.tk.t){
       case 'p':  s += ln(x,y,m.tip[0],m.tip[1],col,1.3); break;
       case 'lp': s += ln(x,y,m.tip[0],m.tip[1],col,1.3); break;
-      case 'bp': { const ps = el.pscale||1; s += ln(x,y,x+nx*8*ps,y+ny*8*ps,col,1.3) + dot(m.tip[0],m.tip[1],3.1*(el.bscale||1),bead,'rgba(0,0,0,.35)'); break; }
+      case 'bp': { const sl = m.stem || 8*(el.pscale||1); s += ln(x,y,x+nx*sl,y+ny*sl,col,1.3) + dot(m.tip[0],m.tip[1],3.1*(el.bscale||1),bead,'rgba(0,0,0,.35)'); break; }
       case 'bead': { const n=m.tk.n, bs=el.bscale||1; for(let i=0;i<n;i++){ const off=(i-(n-1)/2)*6.6*bs; s += dot(x+tx*off, y+ty*off, 3.1*bs, bead, 'rgba(0,0,0,.35)'); } break; }
       case 'join': {
         s += ln(x,y,m.tip[0],m.tip[1],col,1.3) + dot(m.tip[0],m.tip[1],2.1,col);
@@ -1009,6 +1024,10 @@ function renderCanvas(){
     s += `<g class="el" data-id="${el.id}">${hit}${halo}${elMarkup(g, st, geoms, {labels:true, exp:false})}</g>`;
   }
   const sg = selId && geoms.byId[selId];
+  if(sg && sg.bead){
+    const el = sg.el, rr = (el.size||3.5), hx = el.x + rr*0.7071 + u*4, hy = el.y + rr*0.7071 + u*4;
+    s += `<rect class="hdl" data-handle="bsz" x="${r1(hx-u*7)}" y="${r1(hy-u*7)}" width="${r1(u*14)}" height="${r1(u*14)}" rx="${r1(u*2)}" vector-effect="non-scaling-stroke"><title>Размер бусины — тяните</title></rect>`;
+  }
   if(sg && !sg.text){
     const hr = r1(u*(matchMedia('(pointer:coarse)').matches ? 10 : 7));
     if(sg.closed){
@@ -1049,16 +1068,20 @@ function snap(x, y, exceptId){
 let placeTool = null, placeRaf = 0;
 let selGroup = [], selRect = null;
 const PLACE_NAMES = {'п':'пико', 'сп':'соединительное пико', 'б':'бусину'};
+let tipHidden = false;
 function setPlaceTool(t){
   placeTool = (t && t!==placeTool) ? t : null;
   document.querySelectorAll('[data-place]').forEach(b => { const on = b.dataset.place===placeTool; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
   $('#canvasWrap').classList.toggle('placing', !!placeTool);
-  $('#placeTip').hidden = !placeTool;
-  if(placeTool) $('#placeTipText').textContent = placeTool==='sel' ? 'Обведите пальцем рамку вокруг нужной части схемы' : placeTool==='num' ? 'Нажмите на лист рядом с узлами и впишите число справа' : placeTool==='x' ?'Ластик: нажмите на элемент или на пико, бусину, соединение — и оно сотрётся' : (placeTool==='б' ? 'Нажмите на кольцо или дугу — бусина встанет на нить; на пустое место — отдельная бусина' : `Нажмите на кольцо или дугу, куда поставить ${PLACE_NAMES[placeTool]}`);
+  $('#placeTip').hidden = !placeTool || tipHidden; $('#tipAgain').hidden = !placeTool || !tipHidden;
+  updateToolHighlight();
+  if(placeTool) $('#placeTipText').textContent = placeTool==='sel' ? 'Обведите пальцем рамку вокруг нужной части схемы' : placeTool==='num' ? 'Нажмите на лист рядом с узлами и впишите число прямо на схеме' : placeTool==='x' ?'Ластик: нажмите на элемент или на пико, бусину, соединение — и оно сотрётся' : (placeTool==='б' ? 'Нажмите на кольцо или дугу — бусина встанет на нить; на пустое место — отдельная бусина' : `Нажмите на кольцо или дугу, куда поставить ${PLACE_NAMES[placeTool]}`);
   snapMark = null; renderCanvas();
 }
 document.querySelectorAll('[data-place]').forEach(b => b.addEventListener('click', () => setPlaceTool(b.dataset.place)));
-$('#placeDone').onclick = () => setPlaceTool(null);
+// ✕ прячет только подсказку — выбранный инструмент остаётся включённым
+$('#placeDone').onclick = () => { tipHidden = true; $('#placeTip').hidden = true; $('#tipAgain').hidden = !placeTool; };
+$('#tipAgain').onclick = () => { tipHidden = false; $('#tipAgain').hidden = true; $('#placeTip').hidden = !placeTool; };
 
 function nearestOnPoly(pts, x, y){
   let best=Infinity, bs=0, cum=0;
@@ -1085,6 +1108,14 @@ function placeTarget(x, y){
   }
   return best;
 }
+// Кружок-прицел: куда встанет знак. Бусина — в любом месте листа (рядом с нитью — на нить, рядом с пико — на его кончик)
+function aimPoint(x, y){
+  if(placeTool==='б'){ const tg = placeTarget(x, y); if(tg) return tg.pt; const sp = snap(x, y, null); return sp ? [sp[0], sp[1]] : [x, y]; }
+  if(placeTool==='п' || placeTool==='сп'){ const tg = placeTarget(x, y); return tg ? tg.pt : null; }
+  if(placeTool==='num' || placeTool==='x') return [x, y];
+  return null;
+}
+function aimAt(x, y){ const nm = aimPoint(x, y); if(String(nm)!==String(snapMark)){ snapMark = nm; renderCanvas(); } }
 function insertTok(toks, c, tok){
   if(c<=0) return [tok, ...toks];
   const out=[]; let cum=0, done=false;
@@ -1101,6 +1132,13 @@ function insertTok(toks, c, tok){
 function mergeDs(toks){
   const out=[]; for(const t of toks){ const last = out[out.length-1]; if(t.t==='ds' && last && last.t==='ds') last.n += t.n; else out.push({...t}); } return out;
 }
+// Длина отдельных пико (el.plens: номер знака → множитель). При вставке/удалении знака номера сдвигаются.
+function plenShift(el, k, d){
+  if(!el.plens) return; const o = {};
+  for(const key in el.plens){ const i = +key; if(d<0 && i===k) continue; o[i>=k ? i+d : i] = el.plens[key]; }
+  el.plens = o; if(!Object.keys(o).length) delete el.plens;
+}
+const markIndexOf = (toks, tok) => toks.slice(0, toks.indexOf(tok)).filter(t => t.t!=='ds').length;
 // Ближайшее пико другого элемента — с ним соединяем соединительное пико
 function nearestForeignPicot(el, x, y){
   let best=null, bd = Math.max(upp()*18, scheme.settings.stitch*4);
@@ -1115,7 +1153,7 @@ function placeAt(x, y, hitId){
     for(const g of geoms.list){ for(const r of g.runs){ const d=Math.hypot(r.x-x, r.y-y); if(d<bd){ bd=d; best=r; } } }
     const el = {id:uid('e'), type:'text', label:'', text: best ? String(best.n) : '5', size:10, bold:true, x:r1(best ? best.x : x), y:r1(best ? best.y : y), note:''};
     scheme.elements.push(el); selId = el.id; renderCanvas(); renderPanel(); commit();
-    const inp = $('#f-text'); if(inp && matchMedia('(pointer:fine)').matches){ inp.focus(); inp.select(); }
+    openInline(el);
     return true;
   }
   if(placeTool==='x'){
@@ -1136,7 +1174,7 @@ function placeAt(x, y, hitId){
     }
     const el = best.g.el; const {toks} = parseNotation(el.notation);
     let k=-1; const kept = toks.filter(t => { if(t.t==='ds') return true; k++; return k!==best.k; });
-    el.notation = mergeDs(kept).map(tokText).join(' ');
+    el.notation = mergeDs(kept).map(tokText).join(' '); plenShift(el, best.k, -1);
     selId = el.id; renderCanvas(); renderPanel(); commit(); toast('Знак стёрт');
     return true;
   }
@@ -1158,6 +1196,7 @@ function placeAt(x, y, hitId){
     const nb = nearestForeignPicot(el, at[0], at[1]);
     if(nb){ tok.ref = nb.ref; tok.n = nb.n; }
   }
+  plenShift(el, markIndexOf(newToks, tok), 1);
   el.notation = newToks.map(tokText).join(' ');
   selId = el.id; snapMark = null; renderCanvas(); renderPanel(); commit();
   if(placeTool==='сп') toast(tok.ref ? `Соединение с пико №${tok.n} элемента ${tok.ref}` : 'Соединительное пико поставлено. Рядом нет пико соседа — уточните соединение в записи узлов.');
@@ -1172,14 +1211,14 @@ function hitMark(x, y, lim){
   let best=null;
   for(const g of geoms.list){ if(g.text) continue;
     g.marks.forEach((m, k) => { if(m.tk.t==='split') return; const pts=[[m.q.x,m.q.y]]; if(m.tip) pts.push(m.tip);
-      for(const q of pts){ const d=Math.hypot(q[0]-x, q[1]-y); if(d<lim && (!best || d<best.d)) best={g, k, d, tk:m.tk}; } }); }
+      pts.forEach((q, j) => { const d=Math.hypot(q[0]-x, q[1]-y); if(d<lim && (!best || d<best.d)) best={g, k, d, tk:m.tk, m, atTip: j===1}; }); }); }
   return best;
 }
 const MARK_NAMES = {p:'пико', lp:'длинное пико', bp:'пико с бусиной', bead:'бусину', join:'соединение'};
 function removeTok(el, k){
   const {toks} = parseNotation(el.notation); let i=-1;
   const kept = toks.filter(t => { if(t.t==='ds') return true; i++; return i!==k; });
-  el.notation = mergeDs(kept).map(tokText).join(' ');
+  el.notation = mergeDs(kept).map(tokText).join(' '); plenShift(el, k, -1);
 }
 // Долгое нажатие: кнопка «Удалить» рядом с пальцем
 const lpBox = document.createElement('div'); lpBox.className='lp-box'; lpBox.hidden = true; $('#canvasWrap').appendChild(lpBox);
@@ -1216,11 +1255,14 @@ function startLongPress(e, info){
 
 svg.addEventListener('pointerdown', e => {
   if(e.button>0) return;
-  hideLp();
+  hideLp(); closeInline(true);
+  // первый палец нового жеста — забываем «залипшие» касания, иначе щипок путает приближение и отдаление
+  if(e.isPrimary) touches.clear();
   touches.set(e.pointerId, {x:e.clientX, y:e.clientY});
-  if(touches.size===2){
+  try{ svg.setPointerCapture(e.pointerId); }catch(_){}
+  if(touches.size>=2){
     // два пальца — масштаб листа
-    clearTimeout(lpTimer); drag = null; snapMark = null;
+    clearTimeout(lpTimer); drag = null; snapMark = null; renderCanvas();
     const [a,b] = [...touches.values()];
     pinch = {d0: Math.hypot(a.x-b.x, a.y-b.y) || 1, v0:{...view}, c:[(a.x+b.x)/2, (a.y+b.y)/2]};
     try{ svg.setPointerCapture(e.pointerId); }catch(_){}
@@ -1242,19 +1284,29 @@ svg.addEventListener('pointerdown', e => {
   }
   const onText = (() => { const gg = e.target.closest('g.el'); const it = gg && byId(gg.dataset.id); return !!(it && it.type==='text'); })();
   if(placeTool && !e.target.closest('[data-handle]') && !(placeTool==='num' && onText)){
-    const hg = e.target.closest('g.el');
-    if(placeAt(p.x, p.y, hg ? hg.dataset.id : null)){ e.preventDefault(); return; }
+    const hg = e.target.closest('g.el'), hid = hg ? hg.dataset.id : null;
+    if(e.pointerType==='touch'){
+      // палец: сначала прицел (кружок едет за пальцем), ставим, когда палец отпущен
+      drag = {kind:'aim', p, hid, moved:false}; aimAt(p.x, p.y); e.preventDefault(); return;
+    }
+    if(placeAt(p.x, p.y, hid)){ e.preventDefault(); return; }
   }
   const h = e.target.closest('[data-handle]'), gEl = e.target.closest('g.el');
   const mk = (!h && !placeTool) ? hitMark(p.x, p.y, upp()*(e.pointerType==='touch' ? 13 : 8)) : null;
   if(h && selId){ const el = byId(selId); drag = {kind:h.dataset.handle, el, p0:p, orig:{...el}, moved:false}; }
+  else if(mk && mk.g.el.id===selId && mk.atTip && /^(p|lp|bp)$/.test(mk.tk.t)){
+    // кончик пико — растянуть или укоротить именно это пико
+    const el = mk.g.el, m = mk.m, base = (mk.tk.t==='lp'?14:(mk.tk.t==='bp'?11:7)) * (el.pscale||1);
+    drag = {kind:'plen', el, k:mk.k, q:m.q, n:m.n, base, p0:p, moved:false};
+    startLongPress(e, {mark: mk});
+  }
   else if(mk && mk.g.el.id===selId){
     // знак можно тянуть вдоль кольца или дуги
     const el = mk.g.el; if(el.id!==selId){ selId=el.id; renderCanvas(); renderPanel(); }
     drag = {kind:'mark', el, k:mk.k, tk:mk.tk, p0:p, moved:false};
     startLongPress(e, {mark: mk});
   }
-  else if(gEl){ const id = gEl.dataset.id; if(id!==selId){ selId=id; renderCanvas(); renderPanel(); } const el = byId(id); drag = {kind:'move', el, p0:p, orig:{...el}, moved:false}; startLongPress(e, {id}); }
+  else if(gEl){ const id = gEl.dataset.id, wasSel = id===selId; if(!wasSel){ selId=id; renderCanvas(); renderPanel(); } const el = byId(id); drag = {kind:'move', el, p0:p, orig:{...el}, moved:false, wasSel}; startLongPress(e, {id}); }
   else { if(selId){ selId=null; renderCanvas(); renderPanel(); } drag = {kind:'pan', c0:[e.clientX,e.clientY], v0:{...view}, u:upp(), moved:false}; }
   try{ svg.setPointerCapture(e.pointerId); }catch(_){}
   e.preventDefault();
@@ -1270,13 +1322,24 @@ svg.addEventListener('pointermove', e => {
     view = {x: cx - (cx-pinch.v0.x)*k - mx*nw/r.width, y: cy - (cy-pinch.v0.y)*k - my*nw/r.width, w: nw, h: pinch.v0.h*k};
     applyView(); renderCanvas(); return;
   }
-  if(!drag && placeTool && placeTool!=='x' && placeTool!=='num' && e.pointerType!=='touch'){
+  if(!drag && placeTool && placeTool!=='x' && placeTool!=='num' && placeTool!=='sel' && e.pointerType!=='touch'){
     const p = toWorld(e); cancelAnimationFrame(placeRaf);
-    placeRaf = requestAnimationFrame(() => { const tg = placeTarget(p.x, p.y); const nm = tg ? tg.pt : null;
-      if(String(nm)!==String(snapMark)){ snapMark = nm; renderCanvas(); } });
+    placeRaf = requestAnimationFrame(() => aimAt(p.x, p.y));
     return;
   }
   if(!drag) return;
+  if(drag.kind==='aim'){ const q = toWorld(e); drag.p = q; drag.moved = true; cancelAnimationFrame(placeRaf); placeRaf = requestAnimationFrame(() => aimAt(q.x, q.y)); return; }
+  if(drag.kind==='plen'){
+    const q = toWorld(e); drag.moved = true; clearTimeout(lpTimer);
+    const along = (q.x-drag.q.x)*drag.n[0] + (q.y-drag.q.y)*drag.n[1];
+    const f = clamp(Math.round(along/drag.base*20)/20, 0.3, 5);
+    const el = drag.el; el.plens = el.plens || {}; if(Math.abs(f-1)<0.05) delete el.plens[drag.k]; else el.plens[drag.k] = f;
+    renderCanvas(); return;
+  }
+  if(drag.kind==='bsz'){
+    const q = toWorld(e), el = drag.el; drag.moved = true;
+    el.size = clamp(Math.round(Math.hypot(q.x-el.x, q.y-el.y)*10)/10, 1, 30); renderCanvas(); syncPanelValues(); return;
+  }
   if(drag.kind==='rect'){ const q = toWorld(e); selRect[2]=q.x; selRect[3]=q.y; drag.moved = true; renderCanvas(); return; }
   if(drag.kind==='group'){
     const q = toWorld(e), gx = q.x-drag.p0.x, gy = q.y-drag.p0.y;
@@ -1322,7 +1385,17 @@ svg.addEventListener('pointermove', e => {
 function endDrag(e){
   clearTimeout(lpTimer);
   if(e && e.pointerId!==undefined) touches.delete(e.pointerId);
-  if(pinch){ if(touches.size<2){ pinch = null; drag = null; } return; }
+  if(pinch){ if(touches.size<2){ pinch = null; drag = null; snapMark = null; renderCanvas(); } return; }
+  if(drag && drag.kind==='aim'){
+    const d = drag; drag = null; snapMark = null;
+    if(e && e.type==='pointercancel'){ renderCanvas(); return; }
+    if(!placeAt(d.p.x, d.p.y, d.moved ? null : d.hid)) renderCanvas();
+    return;
+  }
+  if(drag && drag.kind==='move' && !drag.moved && drag.wasSel && drag.el && drag.el.type==='text'){
+    // нажали на уже выбранное число или подпись — печатаем прямо на схеме
+    const el = drag.el; drag = null; snapMark = null; openInline(el); return;
+  }
   if(drag && drag.kind==='rect'){
     const [a,b,c,d] = selRect, x0=Math.min(a,c), x1=Math.max(a,c), y0=Math.min(b,d), y1=Math.max(b,d);
     selRect = null; drag = null;
@@ -1337,7 +1410,10 @@ function endDrag(e){
     // перенести знак на новое место
     const {toks} = parseNotation(drag.el.notation); let i=-1, tok=null;
     const kept = toks.filter(t => { if(t.t==='ds') return true; i++; if(i===drag.k){ tok=t; return false; } return true; });
-    if(tok){ drag.el.notation = insertTok(mergeDs(kept), drag.c, tok).map(tokText).join(' '); }
+    if(tok){ const f = drag.el.plens && drag.el.plens[drag.k]; plenShift(drag.el, drag.k, -1);
+      const nt = insertTok(mergeDs(kept), drag.c, tok), nk = markIndexOf(nt, tok); plenShift(drag.el, nk, 1);
+      if(f){ (drag.el.plens = drag.el.plens || {})[nk] = f; }
+      drag.el.notation = nt.map(tokText).join(' '); }
     drag=null; snapMark=null; renderCanvas(); renderPanel(); commit(); return;
   }
   if(drag && drag.moved && drag.kind!=='pan'){ snapMark=null; renderCanvas(); syncPanelValues(); commit(); }
@@ -1368,6 +1444,56 @@ document.addEventListener('keydown', e => {
   if(mv){ e.preventDefault(); if(el.type==='chain'||el.type==='line'){ el.x1+=mv[0]; el.x2+=mv[0]; el.y1+=mv[1]; el.y2+=mv[1]; } else { el.x+=mv[0]; el.y+=mv[1]; } renderCanvas(); commitSoon(); }
 });
 
+// палец отпущен за пределами листа — тоже забываем его
+['pointerup','pointercancel'].forEach(t => window.addEventListener(t, e => { if(e.pointerType==='touch' && touches.has(e.pointerId) && e.target!==svg && !svg.contains(e.target)) endDrag(e); }));
+
+/* ---------- Число и подпись: печатать прямо на схеме ---------- */
+let inlineBox = null;
+function openInline(el, selectAll){
+  closeInline(true);
+  if(!el || el.type!=='text') return;
+  const wrap = $('#canvasWrap'), m = svg.getScreenCTM(); if(!m) return;
+  const r = wrap.getBoundingClientRect();
+  const inp = document.createElement('input');
+  inp.type = 'text'; inp.className = 'inline-edit'; inp.value = el.text || '';
+  inp.setAttribute('aria-label', el.bold ? 'Число на схеме' : 'Подпись на схеме'); inp.autocomplete = 'off'; inp.spellcheck = false;
+  if(el.bold) inp.inputMode = 'numeric';
+  const gb = geoms && geoms.byId[el.id], cyW = gb ? (gb.bbox[1]+gb.bbox[3])/2 : el.y;
+  inp.style.left = (el.x*m.a + m.e - r.left) + 'px'; inp.style.top = (cyW*m.d + m.f - r.top) + 'px';
+  inp.style.width = Math.max(64, (inp.value.length+3)*13) + 'px';
+  wrap.appendChild(inp); inlineBox = {inp, id: el.id, before: el.text};
+  inp.addEventListener('input', () => { const it = byId(inlineBox && inlineBox.id); if(!it) return; it.text = inp.value; inp.style.width = Math.max(64, (inp.value.length+3)*13) + 'px'; renderCanvas(); syncPanelValues(); });
+  inp.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); closeInline(true); } else if(e.key==='Escape'){ e.preventDefault(); closeInline(false); } e.stopPropagation(); });
+  inp.addEventListener('blur', () => setTimeout(() => closeInline(true), 0));
+  inp.focus(); if(selectAll!==false) inp.select();
+}
+function closeInline(keep){
+  if(!inlineBox) return; const {inp, id, before} = inlineBox; inlineBox = null; inp.remove();
+  const el = byId(id); if(!el) return;
+  if(!keep) el.text = before;
+  if(!String(el.text||'').trim()){ scheme.elements = scheme.elements.filter(x => x.id!==id); if(selId===id) selId = null; renderCanvas(); renderPanel(); commit(); return; }
+  renderCanvas(); renderPanel(); commit();
+}
+
+/* ---------- Правая панель: скрыть / показать (запоминается) ---------- */
+const LS_PANEL = 'chelnochok.v1.panelHidden';
+function setPanelHidden(h){
+  $('.editor').classList.toggle('nopanel', h);
+  const b = $('#panelTgl'); b.textContent = h ? '◂ Показать панель' : 'Скрыть панель ▸'; b.classList.toggle('off', h); b.setAttribute('aria-pressed', String(h));
+  try{ localStorage.setItem(LS_PANEL, h ? '1' : '0'); }catch(_){}
+  requestAnimationFrame(() => { applyView(); renderCanvas(); });
+}
+$('#panelTgl').onclick = () => setPanelHidden(!$('.editor').classList.contains('nopanel'));
+try{ if(localStorage.getItem(LS_PANEL)==='1') setPanelHidden(true); }catch(_){}
+
+/* ---------- Подсветка кнопок слева: включённый инструмент и выбранный элемент ---------- */
+function updateToolHighlight(){
+  const el = selId && byId(selId);
+  let cur = null;
+  if(el && !placeTool){ cur = el.type==='sring' ? 'ring' : el.type==='text' ? (el.bold ? 'num' : 'text') : el.type==='bead' ? 'б' : el.type; }
+  document.querySelectorAll('.tools .tool').forEach(b => { const key = b.dataset.add || b.dataset.place; b.classList.toggle('cur', !!cur && key===cur && !b.classList.contains('on')); });
+}
+
 /* ---------- Добавление элементов ---------- */
 function viewCenter(){ return [view.x+view.w/2, view.y+view.h/2]; }
 function addElement(type){
@@ -1389,6 +1515,7 @@ function addElement(type){
     el = {id:uid('e'), type:'text', label:'', text:'Подпись', size:14, x:r1(cx), y:r1(cy), note:''};
   }
   scheme.elements.push(el); selId = el.id; renderCanvas(); renderPanel(); commit();
+  if(type==='text'){ openInline(el, true); return; }
   if(type!=='text'){ const ta = $('#f-notation'); if(ta && window.matchMedia('(min-width: 761px)').matches && matchMedia('(pointer:fine)').matches){ ta.focus(); ta.select(); } }
 }
 document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => addElement(b.dataset.add)));
@@ -1405,6 +1532,7 @@ function duplicateSel(){
 const panel = $('#panel');
 function renderPanel(){
   const el = selId && byId(selId);
+  updateToolHighlight();
   if(!el && selGroup.length>1){
     panel.innerHTML = `<div><div class="kind">Выделено</div><h3>${selGroup.length} ${plural(selGroup.length,'элемент','элемента','элементов')}</h3></div>
       <p class="hint">Тяните любой выделенный элемент — вся часть схемы поедет вместе. Копия появится рядом, её тоже можно тянуть целиком.</p>
@@ -1421,9 +1549,8 @@ function renderPanel(){
   } else if(el.type==='text'){
     h += `<label class="fld">Текст<input type="text" id="f-text" data-f="text"></label>`;
   } else {
-    const S0 = stats(parseNotation(el.notation).toks);
-    if(S0.pic) h += `<div class="sizebar"><span class="lbl">Пико на этом элементе</span><button type="button" data-act="psize-" aria-label="Пико меньше">−</button><span class="val" id="psizeVal"></span><button type="button" data-act="psize+" aria-label="Пико больше">+</button></div>`;
-    if(S0.beads) h += `<div class="sizebar"><span class="lbl">Бусины на этом элементе</span><button type="button" data-act="bsize-" aria-label="Бусины меньше">−</button><span class="val" id="bsizeVal"></span><button type="button" data-act="bsize+" aria-label="Бусины больше">+</button></div>`;
+    h += `<div class="sizebar"><span class="lbl">Все пико на этом элементе (одно пико — тяните за кончик)</span><button type="button" data-act="psize-" aria-label="Пико меньше">−</button><span class="val" id="psizeVal"></span><button type="button" data-act="psize+" aria-label="Пико больше">+</button></div>`;
+    h += `<div class="sizebar"><span class="lbl">Бусины на этом элементе</span><button type="button" data-act="bsize-" aria-label="Бусины меньше">−</button><span class="val" id="bsizeVal"></span><button type="button" data-act="bsize+" aria-label="Бусины больше">+</button></div>`;
     h += `<label class="fld">Буква на схеме<input type="text" id="f-label" data-f="label" maxlength="2" autocomplete="off"></label>
       <label class="fld">Запись узлов<textarea id="f-notation" class="mono" data-f="notation" rows="2" spellcheck="false" autocomplete="off"></textarea></label>
       <div class="tokbar">
@@ -1443,7 +1570,7 @@ function renderPanel(){
     }
     h += `<label class="fld">Примечание к шагу<textarea id="f-note" data-f="note" rows="2" placeholder="Например: не затягивать сильно"></textarea></label>`;
   }
-  h += `<p class="hint">${el.type==='ring'||el.type==='sring' ? 'Тяните кольцо пальцем или мышкой. Квадратная ручка на кончике — размер, круглая над ним — поворот. Пико и бусины тоже можно тянуть вдоль кольца. Долгое нажатие — удалить.' : el.type==='text' ? 'Тяните, чтобы передвинуть. Долгое нажатие — удалить.' : 'Круглые ручки — начало и конец, ромбик — изгиб. Пико и бусины можно тянуть вдоль дуги. Долгое нажатие — удалить.'}</p>`;
+  h += `<p class="hint">${el.type==='ring'||el.type==='sring' ? 'Тяните кольцо пальцем или мышкой. Квадратная ручка на кончике — размер, круглая над ним — поворот. Пико и бусины тоже можно тянуть вдоль кольца, а пико за кончик — растянуть. Долгое нажатие — удалить.' : el.type==='text' ? 'Нажмите на выбранное число или подпись ещё раз — и печатайте прямо на схеме. Тяните, чтобы передвинуть. Долгое нажатие — удалить.' : el.type==='bead' ? 'Квадратик у бусины — тяните, чтобы изменить размер.' : 'Круглые ручки — начало и конец, ромбик — изгиб. Пико и бусины можно тянуть вдоль дуги, пико за кончик — растянуть. Долгое нажатие — удалить.'}</p>`;
   panel.innerHTML = h;
   syncPanelValues();
 }
@@ -1536,13 +1663,13 @@ panel.addEventListener('click', e => {
   if(act==='del'){ if(!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent='Точно удалить?'; setTimeout(()=>{ if(b.isConnected){ b.classList.remove('armed'); b.textContent='Удалить'; } }, 3000); return; } deleteSel(); return; }
   if((act==='size-' || act==='size+') && el){
     const up = act==='size+';
-    if(el.type==='bead') el.size = clamp(Math.round(((el.size||3.5) + (up?0.5:-0.5))*10)/10, 1, 14);
+    if(el.type==='bead') el.size = clamp(Math.round((el.size||3.5) * (up?1.25:0.8)*10)/10, 1, 30);
     else if(el.type==='text') el.size = clamp((el.size||14) + (up?1:-1), 6, 60);
     else if(el.type==='ring' || el.type==='sring') el.scale = clamp(Math.round(((el.scale||1) + (up?0.1:-0.1))*10)/10, 0.3, 3);
     else { const k = up ? 1.1 : 1/1.1, mx=(el.x1+el.x2)/2, my=(el.y1+el.y2)/2; el.x1=r1(mx+(el.x1-mx)*k); el.y1=r1(my+(el.y1-my)*k); el.x2=r1(mx+(el.x2-mx)*k); el.y2=r1(my+(el.y2-my)*k); el.bend = Math.round((el.bend||0)*k); }
     renderCanvas(); syncPanelValues(); commitSoon(); return;
   }
-  if(/^[pb]size[-+]$/.test(act||'') && el){ const key = act[0]==='p' ? 'pscale' : 'bscale'; el[key] = clamp(Math.round(((el[key]||1) + (act.endsWith('+')?0.1:-0.1))*10)/10, 0.4, 3); renderCanvas(); syncPanelValues(); commitSoon(); return; }
+  if(/^[pb]size[-+]$/.test(act||'') && el){ const key = act[0]==='p' ? 'pscale' : 'bscale'; el[key] = clamp(Math.round(((el[key]||1) + (act.endsWith('+')?0.25:-0.25))*100)/100, 0.25, 4); renderCanvas(); syncPanelValues(); commitSoon(); return; }
   if(act==='dup'){ duplicateSel(); return; }
   if(act==='desel'){ selId=null; renderCanvas(); renderPanel(); return; }
 });
