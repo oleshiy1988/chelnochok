@@ -267,6 +267,12 @@ main{padding-block:16px 40px}
 button, .tool, .btn, .chipbtn, a{touch-action:manipulation}
 .tool{min-width:70px;padding:9px 6px}
 @media (pointer:coarse){ .tool{padding:11px 6px} .btn{padding:10px 14px} .zoom button{width:46px;height:46px} }
+.pk-bar{position:absolute;left:50%;top:10px;transform:translateX(-50%);width:max-content;z-index:3;display:flex;flex-wrap:wrap;justify-content:center;gap:4px;align-items:center;background:var(--surface);border:1.5px solid var(--sel);border-radius:12px;padding:5px 6px;box-shadow:0 6px 18px rgba(0,0,0,.15);max-width:calc(100% - 20px)}
+.pk-bar b{font-size:13px;color:var(--sel);padding:0 6px}
+.pk-bar button{white-space:nowrap;border:0;border-radius:8px;min-width:38px;height:36px;padding:0 10px;font-weight:700;font-size:15px;cursor:pointer;background:var(--surface-2);color:var(--ink)}
+.pk-bar button.ok{background:var(--sel);color:#fff}
+.pk-bar .val{font-size:12px;color:#5b6072;min-width:40px;text-align:center}
+#canvas .pk-box{fill:rgba(42,92,105,.06);stroke:var(--sel);stroke-dasharray:4 3;pointer-events:none}
 .lp-box{position:absolute;z-index:5;display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
 .lp-box button{border:0;border-radius:8px;padding:12px 16px;font-weight:700;font-size:15px;cursor:pointer}
 .lp-box .lp-del{background:var(--rose);color:#fff}
@@ -352,7 +358,8 @@ button, .tool, .btn, .chipbtn, a{touch-action:manipulation}
         <div class="empty" id="emptyHint" hidden><div><b>Пустой лист</b>Начните с кнопки «Кольцо» слева — оно появится в центре, без пико.<br>Пико поставьте кнопкой «Пико», потом добавьте дугу и следующее кольцо.</div></div>
         <div class="place-tip" id="placeTip" hidden><span id="placeTipText"></span><button type="button" id="placeDone" class="tip-x" title="Скрыть подсказку (инструмент останется выбран)" aria-label="Скрыть подсказку">✕</button></div>
         <button type="button" class="tip-again" id="tipAgain" hidden>? подсказка</button>
-        <div class="canvas-tip" id="canvasTip">Тяните элемент или пико пальцем. Подержите — удалить. Два пальца — приблизить.</div>
+        <div class="pk-bar" id="pkBar" hidden><b id="pkName">Пико</b><button type="button" data-pk="rl" title="Повернуть влево">↺</button><button type="button" data-pk="rr" title="Повернуть вправо">↻</button><button type="button" data-pk="s-" title="Меньше">−</button><span class="val" id="pkVal">100%</span><button type="button" data-pk="s+" title="Больше">+</button><button type="button" data-pk="reset" title="Вернуть пико как было">Как было</button><button type="button" class="ok" data-pk="done">Готово</button></div>
+        <div class="canvas-tip" id="canvasTip">Нажмите на пико — появится рамка: тяните, крутите за кружок, размер — квадратики. Подержите — удалить.</div>
         <div class="zoom">
           <button type="button" id="panelTgl" class="panel-tgl" aria-pressed="false" title="Скрыть или показать правую панель">Скрыть панель ▸</button>
           <button type="button" id="zOut" aria-label="Уменьшить">−</button>
@@ -501,7 +508,7 @@ button, .tool, .btn, .chipbtn, a{touch-action:manipulation}
         </table></div>
         <p>Привычная запись через дефис тоже понимается: <code>5-5-5-5</code> — это то же, что <code>5 п 5 п 5 п 5</code>.</p>
         <p><b>Числа узлов на схеме</b> сами не пишутся — их ставите вы. Нажмите кнопку <b>«Число»</b> на панели слева, а потом на лист рядом с узлами: появится число, программа сразу подставит количество узлов этого участка, и прямо на схеме откроется окошко — впишите своё число и нажмите Enter (или просто нажмите в другое место). Чтобы потом исправить число, нажмите на него, а затем ещё раз — окошко откроется снова. Число можно перетащить мышкой, а лишнее — выделить и удалить. Если хотите, чтобы все числа писались сами, снимите выделение и в настройках справа включите <b>«Писать число узлов на схеме автоматически»</b>.</p>
-        <p><b>Можно не писать, а ставить пальцем или мышкой.</b> Нажмите на панели слева <b>«Пико»</b> или <b>«Бусина»</b>, а потом на кольцо или дугу в том месте, где нужен знак: он встанет между узлами, а запись узлов поправится сама. Так можно поставить несколько знаков подряд. Инструмент остаётся включённым (кнопка подсвечена), пока вы не нажмёте на неё ещё раз или клавишу Esc. Крестик ✕ у подсказки над листом прячет только подсказку, инструмент не выключается. Пока выбрана «Бусина», кружок показывает, куда она встанет: на кольцо или дугу — на нить, в любое другое место листа — отдельной бусиной. На планшете кружок едет за пальцем, а бусина ставится, когда отпускаете палец. Уже поставленное пико или бусину можно <b>перетащить</b> вдоль кольца пальцем (сначала выделите кольцо). Отдельное пико можно <b>растянуть или укоротить</b> — тяните его за кончик. <b>Ластик</b> стирает то, на что вы нажали: пико, бусину или целиком кольцо, дугу, нить, подпись, число. Удалить можно и так: <b>нажмите на элемент и подержите</b> — появится кнопка «Удалить».</p>
+        <p><b>Можно не писать, а ставить пальцем или мышкой.</b> Нажмите на панели слева <b>«Пико»</b> или <b>«Бусина»</b>, а потом на кольцо или дугу в том месте, где нужен знак: он встанет между узлами, а запись узлов поправится сама. Так можно поставить несколько знаков подряд. Инструмент остаётся включённым (кнопка подсвечена), пока вы не нажмёте на неё ещё раз или клавишу Esc. Крестик ✕ у подсказки над листом прячет только подсказку, инструмент не выключается. Пока выбрана «Бусина», кружок показывает, куда она встанет: на кольцо или дугу — на нить, в любое другое место листа — отдельной бусиной. На планшете кружок едет за пальцем, а бусина ставится, когда отпускаете палец. Бусину можно <b>перетащить</b> вдоль кольца пальцем (сначала выделите кольцо). <b>Пико</b> просто нажмите — вокруг него появится рамка: тяните пико за середину рамки в любое место, крутите за круглую ручку, меняйте размер за квадратики по углам. Белый кружок у основания двигает пико вдоль кольца. Сверху листа появятся кнопки: повернуть, меньше/больше и «Как было». <b>Ластик</b> стирает то, на что вы нажали: пико, бусину или целиком кольцо, дугу, нить, подпись, число. Удалить можно и так: <b>нажмите на элемент и подержите</b> — появится кнопка «Удалить».</p>
         <p>Под полем видно, как программа поняла запись: каждое число и знак отдельной плашкой, и итог — сколько всего узлов, пико и бусин. Если какой-то знак <span class="bad-sample">подсвечен красным</span>, программа его не поняла — проверьте опечатку.</p>
         <p><b>Буква на схеме</b> (А, Б, В…) ставится сама, её можно поменять. По этой букве элемент называется в инструкции и в соединениях.</p>
         <p><b>Другие настройки кольца:</b></p>
@@ -783,7 +790,12 @@ function geomOf(el, st){
     const mi = k; k++;
     const q = pi.at(s), n = normal(q);
     const m = {tk, q, n};
-    if(tk.t==='p'||tk.t==='lp'||tk.t==='bp'){ pidx++; const ps = el.pscale||1, f = (el.plens && el.plens[mi]) || 1; const len = (tk.t==='lp'?14:(tk.t==='bp'?11:7)) * ps * f; m.idx=pidx; m.tip=[q.x+n[0]*len, q.y+n[1]*len]; m.stem = Math.max(2, len - 3*ps); picots.push({idx:pidx, x:m.tip[0], y:m.tip[1]}); }
+    if(tk.t==='p'||tk.t==='lp'||tk.t==='bp'){ pidx++; const ps = el.pscale||1, f = (el.plens && el.plens[mi]) || 1;
+      const o = (el.pico && el.pico[mi]) || {}, sc = o.s||1, a = (o.a||0)*Math.PI/180, ca=Math.cos(a), sa=Math.sin(a);
+      const dv = [n[0]*ca - n[1]*sa, n[0]*sa + n[1]*ca];
+      const len = (tk.t==='lp'?14:(tk.t==='bp'?11:7)) * ps * f * sc;
+      m.idx=pidx; m.k=mi; m.ps=sc; m.dv=dv; m.len=len; m.b=[q.x+(o.dx||0), q.y+(o.dy||0)];
+      m.tip=[m.b[0]+dv[0]*len, m.b[1]+dv[1]*len]; m.stem = Math.max(2, len - 3*ps*sc); picots.push({idx:pidx, x:m.tip[0], y:m.tip[1]}); }
     if(tk.t==='join'){ m.tip=[q.x+n[0]*5.5, q.y+n[1]*5.5]; }
     marks.push(m);
   }
@@ -795,7 +807,7 @@ function geomOf(el, st){
   let d = 'M' + pts.map(p => r1(p[0])+' '+r1(p[1])).join('L') + (closed?'Z':'');
   let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
   const grow=(x,y)=>{ if(x<x0)x0=x; if(y<y0)y0=y; if(x>x1)x1=x; if(y>y1)y1=y; };
-  pts.forEach(p=>grow(p[0],p[1])); marks.forEach(m=>{ if(m.tip) grow(m.tip[0],m.tip[1]); });
+  pts.forEach(p=>grow(p[0],p[1])); marks.forEach(m=>{ if(m.tip) grow(m.tip[0],m.tip[1]); if(m.b) grow(m.b[0],m.b[1]); });
   runLabels.forEach(l=>grow(l.x,l.y));
   const anchors = closed ? [[el.x, el.y]] : [[el.x1, el.y1], [el.x2, el.y2]];
   return {el, closed, d, pts, marks, runs:runLabels, picots, label, anchors, bbox:[x0-8,y0-8,x1+8,y1+8], S, ...extra};
@@ -817,9 +829,9 @@ function elMarkup(g, st, geoms, opt){
   for(const m of g.marks){
     const {x,y,tx,ty} = m.q, [nx,ny] = m.n;
     switch(m.tk.t){
-      case 'p':  s += ln(x,y,m.tip[0],m.tip[1],col,1.3); break;
-      case 'lp': s += ln(x,y,m.tip[0],m.tip[1],col,1.3); break;
-      case 'bp': { const sl = m.stem || 8*(el.pscale||1); s += ln(x,y,x+nx*sl,y+ny*sl,col,1.3) + dot(m.tip[0],m.tip[1],3.1*(el.bscale||1),bead,'rgba(0,0,0,.35)'); break; }
+      case 'p':  s += ln(m.b[0],m.b[1],m.tip[0],m.tip[1],col,1.3); break;
+      case 'lp': s += ln(m.b[0],m.b[1],m.tip[0],m.tip[1],col,1.3); break;
+      case 'bp': { const sl = m.stem; s += ln(m.b[0],m.b[1],m.b[0]+m.dv[0]*sl,m.b[1]+m.dv[1]*sl,col,1.3) + dot(m.tip[0],m.tip[1],3.1*(el.bscale||1)*m.ps,bead,'rgba(0,0,0,.35)'); break; }
       case 'bead': { const n=m.tk.n, bs=el.bscale||1; for(let i=0;i<n;i++){ const off=(i-(n-1)/2)*6.6*bs; s += dot(x+tx*off, y+ty*off, 3.1*bs, bead, 'rgba(0,0,0,.35)'); } break; }
       case 'join': {
         s += ln(x,y,m.tip[0],m.tip[1],col,1.3) + dot(m.tip[0],m.tip[1],2.1,col);
@@ -1044,8 +1056,10 @@ function renderCanvas(){
     }
   }
   if(selRect){ const [a,b,c,d] = selRect; s += `<rect x="${r1(Math.min(a,c))}" y="${r1(Math.min(b,d))}" width="${r1(Math.abs(c-a))}" height="${r1(Math.abs(d-b))}" fill="rgba(42,92,105,.08)" stroke="var(--sel)" stroke-width="${r1(u*1.5)}" stroke-dasharray="${r1(u*5)} ${r1(u*4)}"/>`; }
+  s += picoMarkup(u);
   if(snapMark) s += `<circle class="snap" cx="${r1(snapMark[0])}" cy="${r1(snapMark[1])}" r="${r1(u*10)}" vector-effect="non-scaling-stroke"/>`;
   world.innerHTML = s;
+  updatePkBar();
   $('#emptyHint').hidden = scheme.elements.length>0;
 }
 
@@ -1134,6 +1148,7 @@ function mergeDs(toks){
 }
 // Длина отдельных пико (el.plens: номер знака → множитель). При вставке/удалении знака номера сдвигаются.
 function plenShift(el, k, d){
+  if(el.pico){ const o = {}; for(const key in el.pico){ const i = +key; if(d<0 && i===k) continue; o[i>=k ? i+d : i] = el.pico[key]; } el.pico = o; if(!Object.keys(o).length) delete el.pico; }
   if(!el.plens) return; const o = {};
   for(const key in el.plens){ const i = +key; if(d<0 && i===k) continue; o[i>=k ? i+d : i] = el.plens[key]; }
   el.plens = o; if(!Object.keys(o).length) delete el.plens;
@@ -1159,7 +1174,7 @@ function placeAt(x, y, hitId){
   if(placeTool==='x'){
     const lim = upp()*10; let best=null;
     for(const g of geoms.list){ if(g.text) continue;
-      g.marks.forEach((m, k) => { if(m.tk.t==='split') return; const pts=[[m.q.x,m.q.y]]; if(m.tip) pts.push(m.tip);
+      g.marks.forEach((m, k) => { if(m.tk.t==='split') return; const pts=[m.b || [m.q.x,m.q.y]]; if(m.tip) pts.push(m.tip); if(m.b) pts.push([(m.b[0]+m.tip[0])/2, (m.b[1]+m.tip[1])/2]);
         for(const p of pts){ const d=Math.hypot(p[0]-x, p[1]-y); if(d<lim && (!best || d<best.d)) best={g, k, d}; } }); }
     if(!best){
       // не знак — стираем весь элемент под курсором
@@ -1203,6 +1218,53 @@ function placeAt(x, y, hitId){
   return true;
 }
 
+/* ---------- Пико: поворот, перенос, размер ---------- */
+let selPico = null; // {id, k} — k: номер знака в записи
+function picoOf(el, k){ if(!el.pico) el.pico = {}; if(!el.pico[k]) el.pico[k] = {}; return el.pico[k]; }
+function cleanPico(el, k){ const o = el.pico && el.pico[k]; if(!o) return;
+  if(!o.dx) delete o.dx; if(!o.dy) delete o.dy; if(!o.a) delete o.a; if(!o.s || o.s===1) delete o.s;
+  if(!Object.keys(o).length) delete el.pico[k]; if(el.pico && !Object.keys(el.pico).length) delete el.pico; }
+function selPicoMark(){
+  if(!selPico || !geoms || selPico.id!==selId) return null; const g = geoms.byId[selPico.id]; if(!g || g.text) return null;
+  const m = g.marks[selPico.k]; return (m && m.idx) ? {g, m} : null;
+}
+function picoMarkup(u){
+  const sm = selPicoMark(); if(!sm) return '';
+  const {m} = sm, [bx,by] = m.b, [tx,ty] = m.tip, dv = m.dv;
+  const ang = Math.atan2(dv[1], dv[0])*180/Math.PI;
+  const coarse = matchMedia('(pointer:coarse)').matches;
+  const pad = u*12, half = Math.max(u*16, (m.tk.t==='bp' ? 4*m.ps : 2.5)+u*8);
+  const L = m.len + (m.tk.t==='bp' ? 3.1*m.ps : 0);
+  const cx = (bx+tx)/2, cy=(by+ty)/2;
+  const x0 = -L/2 - pad, x1 = L/2 + pad, y0 = -half, y1 = half;
+  const hs = u*(coarse ? 12 : 9), hr = u*(coarse ? 9 : 6.5);
+  let s = `<g transform="translate(${r1(cx)} ${r1(cy)}) rotate(${r1(ang)})"><rect class="pk-box" x="${r1(x0)}" y="${r1(y0)}" width="${r1(x1-x0)}" height="${r1(y1-y0)}" rx="${r1(u*3)}" stroke-width="${r1(u*1.2)}"/>`;
+  s += `<rect data-handle="pk-move" x="${r1(x0+hs/2)}" y="${r1(y0+hs/2)}" width="${r1(Math.max(0,x1-x0-hs))}" height="${r1(Math.max(0,y1-y0-hs))}" fill="transparent" pointer-events="all" style="cursor:move"><title>Передвинуть пико</title></rect>`;
+  for(const [hx,hy] of [[x0,y0],[x1,y0],[x0,y1],[x1,y1]]) s += `<rect class="hdl" data-handle="pk-size" x="${r1(hx-hs/2)}" y="${r1(hy-hs/2)}" width="${r1(hs)}" height="${r1(hs)}" rx="${r1(u*1.5)}" vector-effect="non-scaling-stroke"><title>Размер пико</title></rect>`;
+  const rx = x1 + u*26;
+  s += `<line x1="${r1(x1)}" y1="0" x2="${r1(rx)}" y2="0" stroke="var(--sel)" stroke-width="${r1(u*1.2)}"/>`;
+  s += `<circle class="hdl rot" data-handle="pk-rot" cx="${r1(rx)}" cy="0" r="${r1(hr)}" vector-effect="non-scaling-stroke"><title>Повернуть пико</title></circle></g>`;
+  s += `<circle class="hdl" data-handle="pk-slide" cx="${r1(m.q.x)}" cy="${r1(m.q.y)}" r="${r1(u*4.5)}" vector-effect="non-scaling-stroke"><title>Передвинуть по кольцу</title></circle>`;
+  return s;
+}
+function updatePkBar(){
+  const sm = selPicoMark(), bar = $('#pkBar'); bar.hidden = !sm || !!placeTool;
+  if(bar.hidden) return;
+  $('#pkName').textContent = `Пико №${sm.m.idx}${sm.g.el.label ? ' · '+sm.g.el.label : ''}`;
+  $('#pkVal').textContent = Math.round(sm.m.ps*100)+'%';
+}
+document.querySelectorAll('[data-pk]').forEach(b => b.addEventListener('click', () => {
+  const act = b.dataset.pk; if(act==='done'){ selPico=null; renderCanvas(); return; }
+  const sm = selPicoMark(); if(!sm) return; const el = sm.g.el, k = sm.m.k;
+  if(act==='reset'){ if(el.pico) delete el.pico[k]; if(el.pico && !Object.keys(el.pico).length) delete el.pico;
+    if(el.plens){ delete el.plens[k]; if(!Object.keys(el.plens).length) delete el.plens; } }
+  else { const o = picoOf(el, k);
+    if(act==='rl' || act==='rr'){ o.a = (((o.a||0) + (act==='rr'?15:-15)) % 360 + 540) % 360 - 180; }
+    else { o.s = clamp(Math.round(((o.s||1) + (act==='s+'?0.1:-0.1))*10)/10, 0.4, 4); }
+    cleanPico(el, k); }
+  renderCanvas(); commitSoon();
+}));
+
 /* ---------- Мышь и пальцы (и планшет) ---------- */
 let drag = null, lpTimer = 0;
 const touches = new Map(); let pinch = null;
@@ -1210,7 +1272,7 @@ const touches = new Map(); let pinch = null;
 function hitMark(x, y, lim){
   let best=null;
   for(const g of geoms.list){ if(g.text) continue;
-    g.marks.forEach((m, k) => { if(m.tk.t==='split') return; const pts=[[m.q.x,m.q.y]]; if(m.tip) pts.push(m.tip);
+    g.marks.forEach((m, k) => { if(m.tk.t==='split') return; const pts=[m.b || [m.q.x,m.q.y]]; if(m.tip) pts.push(m.tip); if(m.b) pts.push([(m.b[0]+m.tip[0])/2, (m.b[1]+m.tip[1])/2]);
       pts.forEach((q, j) => { const d=Math.hypot(q[0]-x, q[1]-y); if(d<lim && (!best || d<best.d)) best={g, k, d, tk:m.tk, m, atTip: j===1}; }); }); }
   return best;
 }
@@ -1293,7 +1355,22 @@ svg.addEventListener('pointerdown', e => {
   }
   const h = e.target.closest('[data-handle]'), gEl = e.target.closest('g.el');
   const mk = (!h && !placeTool) ? hitMark(p.x, p.y, upp()*(e.pointerType==='touch' ? 13 : 8)) : null;
-  if(h && selId){ const el = byId(selId); drag = {kind:h.dataset.handle, el, p0:p, orig:{...el}, moved:false}; }
+  if(h && h.dataset.handle.startsWith('pk-')){
+    const sm = selPicoMark();
+    if(sm){ const el = sm.g.el, k = sm.m.k;
+      if(h.dataset.handle==='pk-slide') drag = {kind:'mark', el, k, tk:sm.m.tk, p0:p, moved:false};
+      else drag = {kind:h.dataset.handle, el, k, p0:p, po:{...((el.pico && el.pico[k]) || {})}, base:[...sm.m.b], n0:[...sm.m.n], d0:Math.hypot(p.x-sm.m.b[0], p.y-sm.m.b[1])||1, moved:false};
+      if(h.dataset.handle==='pk-move') startLongPress(e, {mark:{g:sm.g, k, tk:sm.m.tk}});
+    }
+  }
+  else if(h && selId){ selPico = null; const el = byId(selId); drag = {kind:h.dataset.handle, el, p0:p, orig:{...el}, moved:false}; }
+  else if(mk && mk.m && mk.m.idx){
+    // пико: выделить рамкой, тянуть — в любое место
+    const el = mk.g.el;
+    if(el.id!==selId || !selPico || selPico.id!==el.id || selPico.k!==mk.k){ selId=el.id; selGroup=[]; selPico={id:el.id, k:mk.k}; renderCanvas(); renderPanel(); }
+    drag = {kind:'pk-move', el, k:mk.k, p0:p, po:{...((el.pico && el.pico[mk.k]) || {})}, moved:false};
+    startLongPress(e, {mark: mk});
+  }
   else if(mk && mk.g.el.id===selId && mk.atTip && /^(p|lp|bp)$/.test(mk.tk.t)){
     // кончик пико — растянуть или укоротить именно это пико
     const el = mk.g.el, m = mk.m, base = (mk.tk.t==='lp'?14:(mk.tk.t==='bp'?11:7)) * (el.pscale||1);
@@ -1329,6 +1406,19 @@ svg.addEventListener('pointermove', e => {
   }
   if(!drag) return;
   if(drag.kind==='aim'){ const q = toWorld(e); drag.p = q; drag.moved = true; cancelAnimationFrame(placeRaf); placeRaf = requestAnimationFrame(() => aimAt(q.x, q.y)); return; }
+  if(drag.kind==='pk-move' || drag.kind==='pk-rot' || drag.kind==='pk-size'){
+    const q = toWorld(e), dx = q.x-drag.p0.x, dy = q.y-drag.p0.y;
+    if(!drag.moved && Math.hypot(dx,dy) < upp()*(e.pointerType==='touch' ? 8 : 3)) return;
+    drag.moved = true; clearTimeout(lpTimer);
+    const el = drag.el, o = picoOf(el, drag.k), po = drag.po;
+    if(drag.kind==='pk-move'){ o.dx = r1((po.dx||0)+dx); o.dy = r1((po.dy||0)+dy); }
+    else if(drag.kind==='pk-rot'){
+      const st = e.shiftKey?15:5;
+      let a = (Math.atan2(q.y-drag.base[1], q.x-drag.base[0]) - Math.atan2(drag.n0[1], drag.n0[0]))*180/Math.PI;
+      o.a = ((Math.round(a/st)*st) % 360 + 540) % 360 - 180;
+    } else { const d1 = Math.hypot(q.x-drag.base[0], q.y-drag.base[1]); o.s = clamp(Math.round((po.s||1)*d1/drag.d0*20)/20, 0.4, 4); }
+    cleanPico(el, drag.k); renderCanvas(); return;
+  }
   if(drag.kind==='plen'){
     const q = toWorld(e); drag.moved = true; clearTimeout(lpTimer);
     const along = (q.x-drag.q.x)*drag.n[0] + (q.y-drag.q.y)*drag.n[1];
@@ -1410,9 +1500,11 @@ function endDrag(e){
     // перенести знак на новое место
     const {toks} = parseNotation(drag.el.notation); let i=-1, tok=null;
     const kept = toks.filter(t => { if(t.t==='ds') return true; i++; if(i===drag.k){ tok=t; return false; } return true; });
-    if(tok){ const f = drag.el.plens && drag.el.plens[drag.k]; plenShift(drag.el, drag.k, -1);
+    if(tok){ const f = drag.el.plens && drag.el.plens[drag.k], pc = drag.el.pico && drag.el.pico[drag.k]; plenShift(drag.el, drag.k, -1);
       const nt = insertTok(mergeDs(kept), drag.c, tok), nk = markIndexOf(nt, tok); plenShift(drag.el, nk, 1);
       if(f){ (drag.el.plens = drag.el.plens || {})[nk] = f; }
+      if(pc){ (drag.el.pico = drag.el.pico || {})[nk] = pc; }
+      if(selPico && selPico.id===drag.el.id && selPico.k===drag.k) selPico.k = nk;
       drag.el.notation = nt.map(tokText).join(' '); }
     drag=null; snapMark=null; renderCanvas(); renderPanel(); commit(); return;
   }
@@ -1436,6 +1528,13 @@ document.addEventListener('keydown', e => {
   if(mod && e.key.toLowerCase()==='z' && !e.shiftKey){ e.preventDefault(); undo(); return; }
   if(mod && (e.key.toLowerCase()==='y' || (e.key.toLowerCase()==='z' && e.shiftKey))){ e.preventDefault(); redo(); return; }
   if(e.key==='Escape' && placeTool){ e.preventDefault(); setPlaceTool(null); return; }
+  { const sm = selPicoMark();
+    if(sm){ const el = sm.g.el, k = sm.m.k;
+      if(e.key==='Escape'){ e.preventDefault(); selPico=null; renderCanvas(); return; }
+      if(e.key==='Delete' || e.key==='Backspace'){ e.preventDefault(); selPico=null; removeTok(el, k); renderCanvas(); renderPanel(); commit(); return; }
+      const st = e.shiftKey?5:1, mv = {ArrowLeft:[-st,0], ArrowRight:[st,0], ArrowUp:[0,-st], ArrowDown:[0,st]}[e.key];
+      if(mv){ e.preventDefault(); const o = picoOf(el, k); o.dx = r1((o.dx||0)+mv[0]); o.dy = r1((o.dy||0)+mv[1]); cleanPico(el, k); renderCanvas(); commitSoon(); return; }
+    } }
   if(!selId) return;
   const el = byId(selId); if(!el) return;
   if(e.key==='Delete' || e.key==='Backspace'){ e.preventDefault(); deleteSel(); return; }
@@ -1549,7 +1648,7 @@ function renderPanel(){
   } else if(el.type==='text'){
     h += `<label class="fld">Текст<input type="text" id="f-text" data-f="text"></label>`;
   } else {
-    h += `<div class="sizebar"><span class="lbl">Все пико на этом элементе (одно пико — тяните за кончик)</span><button type="button" data-act="psize-" aria-label="Пико меньше">−</button><span class="val" id="psizeVal"></span><button type="button" data-act="psize+" aria-label="Пико больше">+</button></div>`;
+    h += `<div class="sizebar"><span class="lbl">Все пико на этом элементе (одно пико — нажмите на него)</span><button type="button" data-act="psize-" aria-label="Пико меньше">−</button><span class="val" id="psizeVal"></span><button type="button" data-act="psize+" aria-label="Пико больше">+</button></div>`;
     h += `<div class="sizebar"><span class="lbl">Бусины на этом элементе</span><button type="button" data-act="bsize-" aria-label="Бусины меньше">−</button><span class="val" id="bsizeVal"></span><button type="button" data-act="bsize+" aria-label="Бусины больше">+</button></div>`;
     h += `<label class="fld">Буква на схеме<input type="text" id="f-label" data-f="label" maxlength="2" autocomplete="off"></label>
       <label class="fld">Запись узлов<textarea id="f-notation" class="mono" data-f="notation" rows="2" spellcheck="false" autocomplete="off"></textarea></label>
